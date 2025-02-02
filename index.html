@@ -3,22 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equator - Math Game</title>
+    <title>MathMaster - Interactive Math Game</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/897/897368.png">
     
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Audio Elements -->
+    <audio id="correctSound" preload="auto">
+        <source src="https://www.soundjay.com/buttons/sounds/button-09.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://www.soundjay.com/buttons/sounds/button-10.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="levelUpSound" preload="auto">
+        <source src="https://www.soundjay.com/buttons/sounds/button-37.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="gameOverSound" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/fail-buzzer-03.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="themeToggle" class="btn-theme" aria-label="Toggle Theme">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
                 <i class="fas fa-square-root-alt"></i>
-                Equator
+                MathMaster
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -32,7 +58,17 @@
                         <a class="nav-link" href="#play">Play</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#learn">Learn</a>
+                        <a class="nav-link" href="#stats">Stats</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#achievements">
+                            <i class="fas fa-trophy"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#profile">
+                            <i class="fas fa-user"></i>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -44,90 +80,189 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="animate__animated animate__fadeInLeft">Welcome to Equator</h1>
-                    <p class="lead">Challenge yourself with exciting math problems!</p>
-                    <div class="game-modes">
-                        <h3>Choose Your Mode:</h3>
-                        <div class="mode-buttons">
-                            <button class="btn btn-mode" onclick="startGame('basic')">
-                                <i class="fas fa-plus-minus"></i>
-                                Basic Math
-                            </button>
-                            <button class="btn btn-mode" onclick="startGame('advanced')">
-                                <i class="fas fa-superscript"></i>
-                                Advanced
-                            </button>
-                            <button class="btn btn-mode" onclick="startGame('speed')">
-                                <i class="fas fa-stopwatch"></i>
-                                Speed Mode
+                    <div class="hero-content animate__animated animate__fadeInLeft">
+                        <h1>Welcome to MathMaster</h1>
+                        <p class="lead">Challenge yourself with exciting math problems and become a Math Master!</p>
+                        <div class="daily-challenge-card">
+                            <h3>Daily Challenge</h3>
+                            <div class="challenge-details">
+                                <span class="badge bg-primary">Medium</span>
+                                <span class="badge bg-success">500 Points</span>
+                            </div>
+                            <button class="btn btn-primary" onclick="startDailyChallenge()">
+                                <i class="fas fa-play"></i> Start Challenge
                             </button>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="hero-shapes">
-                        <div class="shape shape-1"><i class="fas fa-plus"></i></div>
-                        <div class="shape shape-2"><i class="fas fa-minus"></i></div>
-                        <div class="shape shape-3"><i class="fas fa-times"></i></div>
-                        <div class="shape shape-4"><i class="fas fa-divide"></i></div>
-                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Game Section -->
-    <section id="play" class="section-padding bg-light">
+    <section id="play" class="section-padding">
         <div class="container">
-            <div class="game-container" id="gameArea" style="display: none;">
-                <div class="game-header">
-                    <div class="game-info">
-                        <div class="level">Level: <span id="currentLevel">1</span></div>
-                        <div class="score">Score: <span id="currentScore">0</span></div>
-                        <div class="timer" id="gameTimer">01:00</div>
+            <!-- Game Mode Selection -->
+            <div class="mode-selection" id="modeSelection">
+                <h2 class="section-title">Choose Your Game Mode</h2>
+                <div class="mode-cards">
+                    <!-- Basic Mode -->
+                    <div class="mode-card" onclick="selectMode('basic')">
+                        <div class="mode-icon">
+                            <i class="fas fa-plus-minus"></i>
+                        </div>
+                        <h3>Basic Math</h3>
+                        <p>Practice fundamental operations</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-clock"></i> 60s</span>
+                            <span><i class="fas fa-star"></i> Easy</span>
+                        </div>
                     </div>
-                </div>
-                <div class="game-board">
-                    <div class="problem-display" id="problemDisplay">
-                        <!-- Math problem will appear here -->
+
+                    <!-- Advanced Mode -->
+                    <div class="mode-card" onclick="selectMode('advanced')">
+                        <div class="mode-icon">
+                            <i class="fas fa-superscript"></i>
+                        </div>
+                        <h3>Advanced</h3>
+                        <p>Challenge with complex operations</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-clock"></i> 90s</span>
+                            <span><i class="fas fa-star"></i> Hard</span>
+                        </div>
                     </div>
-                    <div class="answer-section">
-                        <input type="number" id="answerInput" placeholder="Your answer">
-                        <button class="btn btn-submit" onclick="checkAnswer()">Submit</button>
+
+                    <!-- Speed Mode -->
+                    <div class="mode-card" onclick="selectMode('speed')">
+                        <div class="mode-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Speed Math</h3>
+                        <p>Race against time</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-clock"></i> 30s</span>
+                            <span><i class="fas fa-star"></i> Medium</span>
+                        </div>
                     </div>
-                    <div class="game-controls">
-                        <button class="btn btn-pause" onclick="togglePause()">
-                            <i class="fas fa-pause"></i> Pause
-                        </button>
-                        <button class="btn btn-restart" onclick="restartGame()">
-                            <i class="fas fa-redo"></i> Restart
-                        </button>
+
+                    <!-- Practice Mode -->
+                    <div class="mode-card" onclick="selectMode('practice')">
+                        <div class="mode-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3>Practice</h3>
+                        <p>Learn at your own pace</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-infinity"></i> No Timer</span>
+                            <span><i class="fas fa-star"></i> Custom</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="mode-selection" id="modeSelection">
-                <h2>Select Game Mode</h2>
-                <div class="mode-cards">
-                    <div class="mode-card" onclick="startGame('basic')">
-                        <i class="fas fa-plus-minus"></i>
-                        <h3>Basic Math</h3>
-                        <p>Practice addition, subtraction, multiplication, and division</p>
+
+            <!-- Game Area -->
+            <div class="game-container" id="gameArea" style="display: none;">
+                <!-- Game Header -->
+                <div class="game-header">
+                    <div class="game-status">
+                        <div class="status-item">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Level: <span id="currentLevel">1</span></span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-star"></i>
+                            <span>Score: <span id="currentScore">0</span></span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-fire"></i>
+                            <span>Combo: <span id="comboMultiplier">x1</span></span>
+                        </div>
+                        <div class="status-item timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="gameTimer">01:00</span>
+                        </div>
                     </div>
-                    <div class="mode-card" onclick="startGame('advanced')">
-                        <i class="fas fa-superscript"></i>
-                        <h3>Advanced</h3>
-                        <p>Challenge yourself with powers, roots, and algebraic expressions</p>
+                    <div class="progress-container">
+                        <div class="progress">
+                            <div class="progress-bar" id="levelProgress" role="progressbar"></div>
+                        </div>
                     </div>
-                    <div class="mode-card" onclick="startGame('speed')">
-                        <i class="fas fa-stopwatch"></i>
-                        <h3>Speed Mode</h3>
-                        <p>Solve as many problems as you can against the clock</p>
+                </div>
+
+                <!-- Game Board -->
+                <div class="game-board">
+                    <div class="problem-container">
+                        <div class="problem-display" id="problemDisplay"></div>
+                        <div class="hint-badge" id="hintBadge">
+                            <i class="fas fa-lightbulb"></i>
+                            <span id="hintText"></span>
+                        </div>
+                    </div>
+
+                    <div class="answer-section">
+                        <div class="input-group">
+                            <input type="number" 
+                                   id="answerInput" 
+                                   class="form-control" 
+                                   placeholder="Enter your answer"
+                                   autocomplete="off">
+                            <button class="btn btn-submit" onclick="checkAnswer()">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="game-controls">
+                        <button class="btn btn-hint" onclick="showHint()" id="hintButton">
+                            <i class="fas fa-lightbulb"></i>
+                            Hint (<span id="hintCount">3</span>)
+                        </button>
+                        <button class="btn btn-pause" onclick="togglePause()">
+                            <i class="fas fa-pause"></i>
+                            Pause
+                        </button>
+                        <button class="btn btn-restart" onclick="restartGame()">
+                            <i class="fas fa-redo"></i>
+                            Restart
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Stats Section -->
+    <section id="stats" class="section-padding">
+        <div class="container">
+            <h2 class="section-title">Your Progress</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <h3>Performance History</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <div class="stats-card">
+                    <h3>Topic Mastery</h3>
+                    <canvas id="topicsChart"></canvas>
+                </div>
+                <div class="stats-card">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="recentActivity"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Achievements Section -->
+    <section id="achievements" class="section-padding">
+        <div class="container">
+            <h2 class="section-title">Achievements</h2>
+            <div class="achievements-grid" id="achievementsContainer"></div>
+        </div>
+    </section>
+
+    <!-- Modals -->
     <!-- Game Over Modal -->
     <div class="modal fade" id="gameOverModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -137,21 +272,58 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="final-score">
-                        <h3>Final Score: <span id="finalScore">0</span></h3>
-                        <p>Level Reached: <span id="finalLevel">1</span></p>
+                    <div class="game-summary">
+                        <div class="summary-item">
+                            <i class="fas fa-star"></i>
+                            <h3>Final Score: <span id="finalScore">0</span></h3>
+                        </div>
+                        <div class="summary-item">
+                            <i class="fas fa-layer-group"></i>
+                            <p>Level Reached: <span id="finalLevel">1</span></p>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-check"></i>
+                                <p>Correct: <span id="correctAnswers">0</span></p>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-bullseye"></i>
+                                <p>Accuracy: <span id="accuracy">0%</span></p>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-fire"></i>
+                                <p>Best Combo: <span id="bestCombo">0</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" onclick="restartGame()">Play Again</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Unlock Modal -->
+    <div class="modal fade" id="achievementModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="achievement-unlock">
+                        <i class="fas fa-trophy achievement-icon"></i>
+                        <h4 id="achievementTitle"></h4>
+                        <p id="achievementDescription"></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JavaScript -->
     <script src="script.js"></script>
