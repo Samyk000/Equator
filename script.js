@@ -1,10 +1,11 @@
+
 // Utility Functions
 const UTILS = {
     seedrandom: function(seed) {
         let x = Math.sin(seed++) * 10000;
         return x - Math.floor(x);
     },
-    
+
     shuffleArray: function(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(UTILS.seedrandom(i) * (i + 1));
@@ -23,20 +24,17 @@ const UTILS = {
 // Sound Manager with proper error handling and preloading
 const SoundManager = {
     sounds: {},
-    
+
     init() {
         const soundFiles = {
-            correct: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
-            wrong: 'https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3',
-            levelUp: 'https://assets.mixkit.co/active_storage/sfx/2015/2015-preview.mp3',
-            gameOver: 'https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3'
+            correct: document.getElementById('correctSound'),
+            wrong: document.getElementById('wrongSound'),
+            levelUp: document.getElementById('levelUpSound'),
+            gameOver: document.getElementById('gameOverSound')
         };
 
-        Object.entries(soundFiles).forEach(([key, url]) => {
-            const audio = new Audio();
-            audio.src = url;
-            audio.preload = 'auto';
-            this.sounds[key] = audio;
+        Object.entries(soundFiles).forEach(([key, audioElement]) => {
+            this.sounds[key] = audioElement;
         });
     },
 
@@ -89,6 +87,12 @@ const AchievementSystem = {
             title: 'Pure Genius',
             description: 'Score 2000 points without using hints',
             condition: (state) => state.hintsLeft === CONFIG.maxHints && state.score >= 2000
+        },
+        {
+            id: 'dailyChallenge',
+            title: 'Daily Challenger',
+            description: 'Complete a daily challenge',
+            condition: (state) => state.isDaily && state.score > 0
         }
     ],
 
@@ -103,9 +107,16 @@ const AchievementSystem = {
     award(achievement, gameState) {
         gameState.achievements.add(achievement.id);
         Game.showToast(`Achievement Unlocked: ${achievement.title}!`, 'achievement');
+        this.showAchievementModal(achievement);
+    },
+
+    showAchievementModal(achievement) {
+        const achievementModal = new bootstrap.Modal(document.getElementById('achievementModal'));
+        document.getElementById('achievementTitle').textContent = achievement.title;
+        document.getElementById('achievementDescription').textContent = achievement.description;
+        achievementModal.show();
     }
 };
-
 
 // Game Configuration
 const CONFIG = {
@@ -137,6 +148,20 @@ const CONFIG = {
             timeLimit: Infinity,
             pointsPerQuestion: 50,
             levelThreshold: 300
+        },
+        puzzle: {
+            operations: ['+', '-', '*', '/'],
+            maxNumber: 50,
+            timeLimit: 120,
+            pointsPerQuestion: 250,
+            levelThreshold: 1500
+        },
+        marathon: {
+            operations: ['+', '-', '*', '/', '^', '√'],
+            maxNumber: 100,
+            timeLimit: Infinity,
+            pointsPerQuestion: 300,
+            levelThreshold: 2000
         }
     },
     comboMultiplier: 0.1,
@@ -170,8 +195,14 @@ const gameState = {
             basic: 0,
             advanced: 0,
             speed: 0,
-            practice: 0
-        }
+            practice: 0,
+            puzzle: 0,
+            marathon: 0
+        },
+        currentStreak: 0,
+        longestStreak: 0,
+        weeklyGoal: 10,
+        weeklyGoalProgress: 0
     }
 };
 
@@ -193,7 +224,7 @@ const ThemeManager = {
     setTheme(theme) {
         document.body.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        
+
         const icon = document.querySelector('#themeToggle i');
         if (icon) {
             icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
@@ -288,6 +319,8 @@ class Game {
         SoundManager.init();
         this.loadSavedData();
         this.showInitialState();
+        this.updateStatsSection();
+        this.updateAchievementsSection();
     }
 
     static bindEventListeners() {
@@ -312,10 +345,10 @@ class Game {
     static showInitialState() {
         const modeSelection = document.getElementById('modeSelection');
         const gameArea = document.getElementById('gameArea');
-        
+
         if (modeSelection) modeSelection.style.display = 'block';
         if (gameArea) gameArea.style.display = 'none';
-        
+
         if (document.getElementById('performanceChart')) {
             this.updateCharts();
         }
@@ -337,7 +370,7 @@ class Game {
 
         const modeSelection = document.getElementById('modeSelection');
         const gameArea = document.getElementById('gameArea');
-        
+
         if (modeSelection) modeSelection.style.display = 'none';
         if (gameArea) {
             gameArea.style.display = 'block';
@@ -360,14 +393,14 @@ class Game {
         const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
         const modes = ['basic', 'advanced', 'speed'];
         const randomMode = modes[Math.floor(UTILS.seedrandom(seed) * modes.length)];
-        
+
         gameState.isDaily = true;
         this.startGame(randomMode);
     }
 
     static generateNewProblem() {
         gameState.currentProblem = ProblemGenerator.generate(gameState.mode);
-        
+
         const problemDisplay = document.getElementById('problemDisplay');
         if (problemDisplay) {
             anime({
@@ -409,7 +442,7 @@ class Game {
         }
 
         this.updateStatistics(isCorrect);
-        AchievementSystem.check(gameState); // Fixed achievement checking
+        AchievementSystem.check(gameState);
         this.updateUI();
     }
 
@@ -432,13 +465,13 @@ class Game {
     static handleWrongAnswer() {
         SoundManager.play('wrong');
         gameState.combo = 0;
-        
+
         if (gameState.mode === 'speed') {
             gameState.timeLeft = Math.max(0, gameState.timeLeft - 5);
         }
 
         this.showToast('Incorrect! Try again', 'error');
-        
+
         const answerInput = document.getElementById('answerInput');
         if (answerInput) {
             anime({
@@ -464,7 +497,7 @@ class Game {
         gameState.hintsLeft--;
         const hint = ProblemGenerator.getHint(gameState.currentProblem);
         const hintBadge = document.getElementById('hintBadge');
-        
+
         if (hintBadge) {
             hintBadge.textContent = hint;
             anime({
@@ -493,31 +526,26 @@ class Game {
 
     static togglePause() {
         gameState.isPaused = !gameState.isPaused;
-        
+
         const pauseBtn = document.querySelector('.btn-pause');
         if (pauseBtn) {
             pauseBtn.innerHTML = gameState.isPaused ? 
                 '<i class="fas fa-play"></i> Resume' : 
                 '<i class="fas fa-pause"></i> Pause';
         }
-        
+
         this.showToast(gameState.isPaused ? 'Game Paused' : 'Game Resumed', 'info');
 
-        const gameArea = document.getElementById('gameArea');
-        if (gameArea) {
-            anime({
-                targets: gameArea,
-                filter: gameState.isPaused ? ['blur(0px)', 'blur(3px)'] : ['blur(3px)', 'blur(0px)'],
-                duration: 300,
-                easing: 'easeOutCubic'
-            });
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        if (pauseOverlay) {
+            pauseOverlay.style.display = gameState.isPaused ? 'block' : 'none';
         }
     }
 
     static startTimer() {
         if (gameState.timer) clearInterval(gameState.timer);
-        
-        if (gameState.mode === 'practice') return;
+
+        if (gameState.mode === 'practice' || gameState.mode === 'marathon') return;
 
         gameState.timer = setInterval(() => {
             if (!gameState.isPaused && gameState.isPlaying) {
@@ -550,7 +578,7 @@ class Game {
             gameState.level++;
             SoundManager.play('levelUp');
             this.showToast(`Level Up! You're now level ${gameState.level}`, 'success');
-            
+
             const levelElement = document.getElementById('currentLevel');
             if (levelElement) {
                 anime({
@@ -577,8 +605,11 @@ class Game {
             gameState.statistics.bestScores[gameState.mode] = gameState.score;
         }
 
+        this.updateStreak();
         this.saveGameData();
         this.showGameOverModal();
+        this.updateStatsSection();
+        this.updateAchievementsSection();
     }
 
     static showGameOverModal() {
@@ -628,7 +659,7 @@ class Game {
         if (elements.levelProgress) {
             const threshold = CONFIG.modes[gameState.mode].levelThreshold;
             const progress = (gameState.score % threshold) / threshold * 100;
-            
+
             anime({
                 targets: elements.levelProgress,
                 width: `${progress}%`,
@@ -660,7 +691,7 @@ class Game {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
-        
+
         let container = document.querySelector('.toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -692,7 +723,7 @@ class Game {
 
     static updateStatistics(isCorrect) {
         const operation = gameState.currentProblem.operation;
-        
+
         if (!gameState.statistics.topicsPerformance[operation]) {
             gameState.statistics.topicsPerformance[operation] = {
                 attempts: 0,
@@ -819,28 +850,137 @@ class Game {
             this.startGame(gameState.mode);
         }
     }
+
+    static closeGame() {
+        gameState.isPlaying = false;
+        if (gameState.timer) clearInterval(gameState.timer);
+
+        const modeSelection = document.getElementById('modeSelection');
+        const gameArea = document.getElementById('gameArea');
+
+        if (modeSelection) modeSelection.style.display = 'block';
+        if (gameArea) gameArea.style.display = 'none';
+    }
+
+    static updateStreak() {
+        if (gameState.correctAnswers > 0) {
+            gameState.statistics.currentStreak++;
+            gameState.statistics.longestStreak = Math.max(gameState.statistics.longestStreak, gameState.statistics.currentStreak);
+        } else {
+            gameState.statistics.currentStreak = 0;
+        }
+
+        gameState.statistics.weeklyGoalProgress++;
+        if (gameState.statistics.weeklyGoalProgress >= gameState.statistics.weeklyGoal) {
+            this.showToast('Weekly Goal Achieved!', 'success');
+        }
+    }
+
+    static updateStatsSection() {
+        document.getElementById('currentStreak').textContent = gameState.statistics.currentStreak;
+        document.getElementById('longestStreak').textContent = gameState.statistics.longestStreak;
+        document.getElementById('weeklyGoal').textContent = gameState.statistics.weeklyGoal;
+        
+        const weeklyGoalProgress = document.getElementById('weeklyGoalProgress');
+        if (weeklyGoalProgress) {
+            const progress = (gameState.statistics.weeklyGoalProgress / gameState.statistics.weeklyGoal) * 100;
+            anime({
+                targets: weeklyGoalProgress,
+                width: `${progress}%`,
+                duration: 300,
+                easing: 'easeOutCubic'
+            });
+        }
+
+        const recentActivity = document.getElementById('recentActivity');
+        if (recentActivity) {
+            recentActivity.innerHTML = '';
+            gameState.statistics.recentScores.slice().reverse().forEach((score, index) => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.textContent = `Game ${index + 1}: Score ${score}`;
+                recentActivity.appendChild(item);
+            });
+        }
+    }
+
+    static updateAchievementsSection() {
+        const achievementsContainer = document.getElementById('achievementsContainer');
+        if (!achievementsContainer) return;
+
+        Array.from(achievementsContainer.children).forEach(card => {
+            const achievementId = card.getAttribute('data-achievement');
+            const achievement = AchievementSystem.achievements.find(a => a.id === achievementId);
+            if (achievement && gameState.achievements.has(achievement.id)) {
+                card.classList.add('unlocked');
+            } else { card.classList.add('unlocked');
+            }
+        });
+    }
 }
 
-// Initialize game when document is ready
+// Event Listeners and Initialization
 document.addEventListener('DOMContentLoaded', () => {
     Game.init();
-});
 
-// Export functions for HTML onclick handlers
-window.selectMode = (mode) => Game.startGame(mode);
-window.startDailyChallenge = () => Game.startDailyChallenge();
-window.checkAnswer = () => Game.checkAnswer();
-window.showHint = () => Game.showHint();
-window.togglePause = () => Game.togglePause();
-window.restartGame = () => Game.restartGame();
-
-// Service Worker Registration
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(registration => {
-            console.log('ServiceWorker registration successful');
-        }).catch(err => {
-            console.log('ServiceWorker registration failed:', err);
+    // Mode Selection
+    const modeButtons = document.querySelectorAll('.mode-card');
+    modeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const mode = button.getAttribute('data-mode');
+            if (mode) Game.startGame(mode);
         });
     });
+
+    // Pause Overlay Click Handler
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    if (pauseOverlay) {
+        pauseOverlay.addEventListener('click', () => {
+            if (gameState.isPaused) {
+                Game.togglePause();
+            }
+        });
+    }
+
+    // Key Bindings for Answer Input
+    const answerInput = document.getElementById('answerInput');
+    if (answerInput) {
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                Game.checkAnswer();
+            }
+        });
+    }
+});
+
+// Global Function Declarations (for HTML onclick handlers)
+function selectMode(mode) {
+    Game.startGame(mode);
 }
+
+function checkAnswer() {
+    Game.checkAnswer();
+}
+
+function showHint() {
+    Game.showHint();
+}
+
+function togglePause() {
+    Game.togglePause();
+}
+
+function restartGame() {
+    Game.restartGame();
+}
+
+function closeGame() {
+    Game.closeGame();
+}
+
+function startDailyChallenge() {
+    Game.startDailyChallenge();
+}
+
+// Initialize the game
+Game.init();
