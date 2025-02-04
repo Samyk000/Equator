@@ -96,6 +96,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
+                    <img src="https://cdn.pixabay.com/photo/2017/06/26/19/31/math-2444200_960_720.png" alt="Math Illustration" class="img-fluid">
                 </div>
             </div>
         </div>
@@ -157,6 +158,32 @@
                         <div class="mode-details">
                             <span><i class="fas fa-infinity"></i> No Timer</span>
                             <span><i class="fas fa-star"></i> Custom</span>
+                        </div>
+                    </div>
+
+                    <!-- Puzzle Mode -->
+                    <div class="mode-card" onclick="selectMode('puzzle')">
+                        <div class="mode-icon">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h3>Math Puzzle</h3>
+                        <p>Solve mathematical puzzles</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-clock"></i> 120s</span>
+                            <span><i class="fas fa-star"></i> Challenging</span>
+                        </div>
+                    </div>
+
+                    <!-- Marathon Mode -->
+                    <div class="mode-card" onclick="selectMode('marathon')">
+                        <div class="mode-icon">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <h3>Math Marathon</h3>
+                        <p>Endless math challenges</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-infinity"></i> No Timer</span>
+                            <span><i class="fas fa-star"></i> Variable</span>
                         </div>
                     </div>
                 </div>
@@ -227,6 +254,10 @@
                             <i class="fas fa-redo"></i>
                             Restart
                         </button>
+                        <button class="btn btn-close" onclick="closeGame()">
+                            <i class="fas fa-times"></i>
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
@@ -250,6 +281,17 @@
                     <h3>Recent Activity</h3>
                     <div class="activity-list" id="recentActivity"></div>
                 </div>
+                <div class="stats-card">
+                    <h3>Streaks and Goals</h3>
+                    <div class="streak-info">
+                        <p>Current Streak: <span id="currentStreak">0</span> days</p>
+                        <p>Longest Streak: <span id="longestStreak">0</span> days</p>
+                        <p>Weekly Goal: <span id="weeklyGoal">10</span> challenges</p>
+                        <div class="progress">
+                            <div class="progress-bar" id="weeklyGoalProgress" role="progressbar"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -258,16 +300,40 @@
     <section id="achievements" class="section-padding">
         <div class="container">
             <h2 class="section-title">Achievements</h2>
-            <div class="achievements-grid" id="achievementsContainer"></div>
+            <div class="achievements-grid" id="achievementsContainer">
+                <div class="achievement-card" data-achievement="beginner">
+                    <i class="fas fa-graduation-cap achievement-icon"></i>
+                    <h3>Math Beginner</h3>
+                    <p>Complete your first game</p>
+                </div>
+                <div class="achievement-card" data-achievement="speedster">
+                    <i class="fas fa-bolt achievement-icon"></i>
+                    <h3>Speedster</h3>
+                    <p>Complete a Speed Math game in under 20 seconds</p>
+                </div>
+                <div class="achievement-card" data-achievement="puzzle-master">
+                    <i class="fas fa-puzzle-piece achievement-icon"></i>
+                    <h3>Puzzle Master</h3>
+                    <p>Solve 10 Math Puzzles</p>
+                </div>
+                <div class="achievement-card" data-achievement="marathon-runner">
+                    <i class="fas fa-running achievement-icon"></i>
+                    <h3>Marathon Runner</h3>
+                    <p>Reach level 10 in Math Marathon</p>
+                </div>
+                <div class="achievement-card" data-achievement="hint-hunter">
+                    <i class="fas fa-lightbulb achievement-icon"></i>
+                    <h3>Hint Hunter</h3>
+                    <p>Use 50 hints across all games</p>
+                </div>
+                <div class="achievement-card" data-achievement="perfect-score">
+                    <i class="fas fa-star achievement-icon"></i>
+                    <h3>Perfect Score</h3>
+                    <p>Get a perfect score in any game mode</p>
+                </div>
+            </div>
         </div>
     </section>
-
-<div class="achievement-card">
-    <i class="fas fa-trophy achievement-icon"></i>
-    <h3>Achievement Name</h3>
-    <p>Description of the achievement</p>
-</div>
-
 
     <!-- Modals -->
     <!-- Game Over Modal -->
@@ -324,6 +390,14 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div id="pauseOverlay" class="pause-overlay" style="display: none;">
+        <div class="pause-content">
+            <h2>Paused</h2>
+            <p>Click anywhere to resume</p>
         </div>
     </div>
 
