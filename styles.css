@@ -23,13 +23,14 @@ body {
 
 .btn-theme {
     background: none;
-    border: 2px solid #e0e0e0; /* Added border for better visibility */
+    border: 2px solid #e0e0e0;
     color: #e0e0e0;
-    font-size: 24px;
+    font-size: 15px;
     cursor: pointer;
-    padding: 10px 15px; /* Added padding for better touch targets */
-    border-radius: 50%; /* Circular button */
+    padding: 4px 10px;
+    border-radius: 50%;
     transition: all 0.3s ease;
+    margin-top: 32px;
 }
 
 .btn-theme:hover {
@@ -43,6 +44,7 @@ body {
     background-color: #1a1a1a;
     padding: 1rem 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    height: 60px;
 }
 
 .navbar-brand {
@@ -52,6 +54,7 @@ body {
     display: flex;
     align-items: center;
     transition: color 0.3s ease;
+    margin-top: -5px;
 }
 
 .navbar-brand i {
@@ -70,9 +73,17 @@ body {
     transform: translateY(-2px);
 }
 
+.navbar-toggler-icon {
+    margin-top: -10px;
+}
+
+.fixed-top {
+    margin-top: -10px;
+}
+
 /* Sections */
 .section-padding {
-    padding: 5rem 0;
+    padding: 3rem 0;
 }
 
 .section-title {
@@ -781,7 +792,7 @@ body {
 
 @media (max-width: 768px) {
     .section-padding {
-        padding: 4rem 0;
+        padding: 1rem 0;
     }
 
     .section-title {
@@ -836,6 +847,7 @@ body {
 
     .btn-primary {
         font-size: 1rem;
+        margin-left: 60px;
     }
 
     .mode-card h3 {
