@@ -1,4 +1,3 @@
-
 // Utility Functions
 const UTILS = {
     seedrandom: function(seed) {
@@ -209,85 +208,205 @@ const gameState = {
 // Theme Manager
 const ThemeManager = {
     init() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        this.setTheme(savedTheme);
+        this.loadSavedTheme();
+        this.bindEvents();
+    },
 
+    bindEvents() {
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                this.setTheme(newTheme);
+            themeToggle.addEventListener('change', () => {
+                this.toggleTheme();
             });
         }
     },
 
-    setTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-
-        const icon = document.querySelector('#themeToggle i');
-        if (icon) {
-            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    loadSavedTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+        
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.checked = savedTheme === 'dark';
         }
+    },
+
+    toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
 };
 
 // Problem Generator
 class ProblemGenerator {
     static generate(mode) {
-        const config = CONFIG.modes[mode];
-        const operation = config.operations[Math.floor(Math.random() * config.operations.length)];
-        let problem, answer, num1, num2;
+        try {
+            const config = CONFIG.modes[mode];
+            if (!config) {
+                throw new Error(`Invalid game mode: ${mode}`);
+            }
+
+            const operation = this.getRandomOperation(config.operations);
+            let problem = this.createProblem(operation, config);
+            
+            // Add default values if missing
+            if (!problem.num1) problem.num1 = 0;
+            if (!problem.num2) problem.num2 = 0;
+            if (!problem.answer) problem.answer = 0;
+            if (!problem.problem) problem.problem = '0 + 0';
+            
+            this.validateProblem(problem);
+            return problem;
+
+        } catch (error) {
+            console.error('Problem generation failed:', error);
+            // Return a simple fallback problem
+            return {
+                problem: '2 + 2',
+                answer: 4,
+                operation: '+',
+                num1: 2,
+                num2: 2
+            };
+        }
+    }
+
+    static getRandomOperation(operations) {
+        if (!operations || operations.length === 0) {
+            throw new Error('No operations available');
+        }
+        return operations[Math.floor(Math.random() * operations.length)];
+    }
+
+    static createProblem(operation, config) {
+        let problem = {
+            problem: '',
+            answer: null,
+            operation,
+            num1: null,
+            num2: null
+        };
 
         switch(operation) {
             case '+':
-                num1 = Math.floor(Math.random() * config.maxNumber) + 1;
-                num2 = Math.floor(Math.random() * config.maxNumber) + 1;
-                answer = num1 + num2;
-                problem = `${num1} + ${num2}`;
+                problem = this.generateAddition(config.maxNumber);
                 break;
-
             case '-':
-                num1 = Math.floor(Math.random() * config.maxNumber) + 1;
-                num2 = Math.floor(Math.random() * num1) + 1;
-                answer = num1 - num2;
-                problem = `${num1} - ${num2}`;
+                problem = this.generateSubtraction(config.maxNumber);
                 break;
-
             case '*':
-                num1 = Math.floor(Math.random() * Math.sqrt(config.maxNumber)) + 1;
-                num2 = Math.floor(Math.random() * Math.sqrt(config.maxNumber)) + 1;
-                answer = num1 * num2;
-                problem = `${num1} × ${num2}`;
+                problem = this.generateMultiplication(config.maxNumber);
                 break;
-
             case '/':
-                num2 = Math.floor(Math.random() * Math.sqrt(config.maxNumber)) + 1;
-                answer = Math.floor(Math.random() * 10) + 1;
-                num1 = num2 * answer;
-                problem = `${num1} ÷ ${num2}`;
+                problem = this.generateDivision(config.maxNumber);
                 break;
-
             case '^':
-                num1 = Math.floor(Math.random() * 10) + 1;
-                num2 = Math.floor(Math.random() * 3) + 1;
-                answer = Math.pow(num1, num2);
-                problem = `${num1}<sup>${num2}</sup>`;
+                problem = this.generatePower(config.maxNumber);
                 break;
-
             case '√':
-                answer = Math.floor(Math.random() * 10) + 1;
-                num1 = answer * answer;
-                problem = `√${num1}`;
+                problem = this.generateSquareRoot(config.maxNumber);
                 break;
+            default:
+                throw new Error(`Unsupported operation: ${operation}`);
         }
 
+        return problem;
+    }
+
+    static validateProblem(problem) {
+        if (!problem.problem || problem.answer === null || 
+            problem.num1 === null || problem.num2 === null) {
+            throw new Error('Invalid problem generated');
+        }
+
+        // Check for reasonable answer values
+        if (!Number.isFinite(problem.answer) || Math.abs(problem.answer) > 1e6) {
+            throw new Error('Problem answer out of reasonable range');
+        }
+    }
+
+    static getFallbackProblem() {
         return {
-            problem,
-            answer,
-            operation,
+            problem: '2 + 2',
+            answer: 4,
+            operation: '+',
+            num1: 2,
+            num2: 2
+        };
+    }
+
+    // Individual operation generators
+    static generateAddition(maxNumber) {
+        const num1 = Math.floor(Math.random() * maxNumber) + 1;
+        const num2 = Math.floor(Math.random() * maxNumber) + 1;
+        return {
+            problem: `${num1} + ${num2}`,
+            answer: num1 + num2,
+            operation: '+',
             num1,
             num2
+        };
+    }
+
+    static generateSubtraction(maxNumber) {
+        const num1 = Math.floor(Math.random() * maxNumber) + 1;
+        const num2 = Math.floor(Math.random() * num1) + 1;
+        return {
+            problem: `${num1} - ${num2}`,
+            answer: num1 - num2,
+            operation: '-',
+            num1,
+            num2
+        };
+    }
+
+    static generateMultiplication(maxNumber) {
+        const num1 = Math.floor(Math.random() * Math.sqrt(maxNumber)) + 1;
+        const num2 = Math.floor(Math.random() * Math.sqrt(maxNumber)) + 1;
+        return {
+            problem: `${num1} × ${num2}`,
+            answer: num1 * num2,
+            operation: '*',
+            num1,
+            num2
+        };
+    }
+
+    static generateDivision(maxNumber) {
+        const num2 = Math.floor(Math.random() * Math.sqrt(maxNumber)) + 1;
+        const answer = Math.floor(Math.random() * 10) + 1;
+        const num1 = num2 * answer;
+        return {
+            problem: `${num1} ÷ ${num2}`,
+            answer: answer,
+            operation: '/',
+            num1,
+            num2
+        };
+    }
+
+    static generatePower(maxNumber) {
+        const num1 = Math.floor(Math.random() * 10) + 1;
+        const num2 = Math.floor(Math.random() * 3) + 1;
+        const answer = Math.pow(num1, num2);
+        return {
+            problem: `${num1}<sup>${num2}</sup>`,
+            answer: answer,
+            operation: '^',
+            num1,
+            num2
+        };
+    }
+
+    static generateSquareRoot(maxNumber) {
+        const answer = Math.floor(Math.random() * 10) + 1;
+        const num1 = answer * answer;
+        return {
+            problem: `√${num1}`,
+            answer: answer,
+            operation: '√',
+            num1,
+            num2: null
         };
     }
 
@@ -951,6 +1070,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Initialize theme manager
+    ThemeManager.init();
 });
 
 // Global Function Declarations (for HTML onclick handlers)
@@ -981,6 +1103,5 @@ function closeGame() {
 function startDailyChallenge() {
     Game.startDailyChallenge();
 }
-
 // Initialize the game
 Game.init();
