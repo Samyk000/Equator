@@ -32,12 +32,6 @@
         <source src="https://www.soundjay.com/buttons/sounds/button-17.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Theme Toggle -->
-    <div class="theme-toggle">
-        <button id="themeToggle" class="btn-theme" aria-label="Toggle Theme">
-            <i class="fas fa-moon"></i>
-        </button>
-    </div>
 
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
@@ -47,7 +41,7 @@
                 MathMaster
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+                <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
@@ -61,14 +55,15 @@
                         <a class="nav-link" href="#stats">Stats</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#achievements">
-                            <i class="fas fa-trophy"></i>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#profile">
-                            <i class="fas fa-user"></i>
-                        </a>
+                        <div class="theme-toggle-wrapper">
+                            <div class="theme-toggle">
+                                <input type="checkbox" id="themeToggle" />
+                                <label for="themeToggle">
+                                    <i class="fas fa-sun"></i>
+                                    <i class="fas fa-moon"></i>
+                                </label>
+                            </div>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -78,21 +73,19 @@
     <!-- Home Section -->
     <section id="home" class="section-padding">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <div class="hero-content animate__animated animate__fadeInLeft">
-                        <h1>Welcome to MathMaster</h1>
-                        <p class="lead">Challenge yourself with exciting math problems and become a Math Master!</p>
-                        <div class="daily-challenge-card">
-                            <h3>Daily Challenge</h3>
-                            <div class="challenge-details">
-                                <span class="badge bg-primary">Medium</span>
-                                <span class="badge bg-success">500 Points</span>
-                            </div>
-                            <button class="btn btn-primary" onclick="startDailyChallenge()">
-                                <i class="fas fa-play"></i> Start Challenge
-                            </button>
+            <div class="row">
+                <div class="hero-content animate__animated animate__fadeInLeft">
+                    <h1>Welcome to MathMaster</h1>
+                    <p class="lead">Challenge yourself with exciting math problems and become a Math Master!</p>
+                    <div class="daily-challenge-card">
+                        <h3>Daily Challenge</h3>
+                        <div class="challenge-details">
+                            <span class="badge bg-primary">Medium</span>
+                            <span class="badge bg-success">500 Points</span>
                         </div>
+                        <button class="btn btn-primary" onclick="startDailyChallenge()">
+                            <i class="fas fa-play"></i> Start Challenge
+                        </button>
                     </div>
                 </div>
             </div>
