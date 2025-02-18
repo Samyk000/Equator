@@ -16,6 +16,9 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Add Remix Icons in head -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 <body>
     <!-- Audio Elements -->
@@ -40,6 +43,16 @@
                 <i class="fas fa-square-root-alt"></i>
                 MathMaster
             </a>
+            <!-- Add theme toggle here for mobile -->
+            <div class="theme-toggle-wrapper">
+                <div class="theme-toggle">
+                    <input type="checkbox" id="themeToggle" />
+                    <label for="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </label>
+                </div>
+            </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <i class="fas fa-bars"></i>
             </button>
@@ -54,11 +67,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#stats">Stats</a>
                     </li>
+                    <!-- Keep theme toggle here for desktop -->
                     <li class="nav-item">
                         <div class="theme-toggle-wrapper">
                             <div class="theme-toggle">
-                                <input type="checkbox" id="themeToggle" />
-                                <label for="themeToggle">
+                                <input type="checkbox" id="themeToggleDesktop" />
+                                <label for="themeToggleDesktop">
                                     <i class="fas fa-sun"></i>
                                     <i class="fas fa-moon"></i>
                                 </label>
@@ -179,76 +193,76 @@
                 </div>
             </div>
 
-            <!-- Game Area -->
-            <div class="game-container" id="gameArea" style="display: none;">
+            <!-- Game Container -->
+            <div class="game-container">
                 <!-- Game Header -->
                 <div class="game-header">
-                    <div class="game-status">
-                        <div class="status-item">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Level: <span id="currentLevel">1</span></span>
+                    <!-- Level & Score Section -->
+                    <div class="stats-left">
+                        <div class="level-display">
+                            <span class="level-label">Level</span>
+                            <span class="level-value" id="currentLevel">5</span>
                         </div>
-                        <div class="status-item">
-                            <i class="fas fa-star"></i>
-                            <span>Score: <span id="currentScore">0</span></span>
-                        </div>
-                        <div class="status-item">
-                            <i class="fas fa-fire"></i>
-                            <span>Combo: <span id="comboMultiplier">x1</span></span>
-                        </div>
-                        <div class="status-item timer">
-                            <i class="fas fa-clock"></i>
-                            <span id="gameTimer">01:00</span>
+                        <div class="score-display">
+                            <span class="score-value" id="currentScore">2,450</span>
+                            <span class="score-label">points</span>
                         </div>
                     </div>
-                    <div class="progress-container">
-                        <div class="progress">
-                            <div class="progress-bar" id="levelProgress" role="progressbar"></div>
-                        </div>
+
+                    <!-- Timer Section -->
+                    <div class="timer-display">
+                        <div class="timer-value" id="gameTimer">01:45</div>
+                    </div>
+
+                    <!-- Combo Display (appears dynamically) -->
+                    <div class="combo-display" id="comboDisplay">
+                        <span class="combo-value">×3</span>
+                        <span class="combo-text">COMBO!</span>
                     </div>
                 </div>
 
-                <!-- Game Board -->
-                <div class="game-board">
-                    <div class="problem-container">
-                        <div class="problem-display" id="problemDisplay"></div>
-                        <div class="hint-badge" id="hintBadge">
-                            <i class="fas fa-lightbulb"></i>
-                            <span id="hintText"></span>
-                        </div>
-                    </div>
+                <!-- Problem Section -->
+                <div class="problem-section">
+                    <div class="problem-display" id="problemDisplay">12 × 8 = ?</div>
+                    <div id="hintBadge"></div>
+                </div>
 
-                    <div class="answer-section">
-                        <div class="input-group">
-                            <input type="number" 
-                                   id="answerInput" 
-                                   class="form-control" 
-                                   placeholder="Enter your answer"
-                                   autocomplete="off">
-                            <button class="btn btn-submit" onclick="checkAnswer()">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </div>
+                <!-- Answer Section -->
+                <div class="answer-section">
+                    <div class="input-wrapper">
+                        <input type="number" 
+                               class="answer-input" 
+                               id="answerInput"
+                               placeholder="Enter your answer"
+                               autocomplete="off">
+                        <button class="submit-answer" onclick="checkAnswer()">
+                            <i class="ri-arrow-right-line"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <div class="game-controls">
-                        <button class="btn btn-hint" onclick="showHint()" id="hintButton">
-                            <i class="fas fa-lightbulb"></i>
-                            Hint (<span id="hintCount">3</span>)
-                        </button>
-                        <button class="btn btn-pause" onclick="togglePause()">
-                            <i class="fas fa-pause"></i>
-                            Pause
-                        </button>
-                        <button class="btn btn-restart" onclick="restartGame()">
-                            <i class="fas fa-redo"></i>
-                            Restart
-                        </button>
-                        <button class="btn btn-close" onclick="closeGame()">
-                            <i class="fas fa-times"></i>
-                            Close
-                        </button>
-                    </div>
+                <!-- Game Controls -->
+                <div class="game-controls">
+                    <!-- Hint Button -->
+                    <button class="control-btn hint-btn" onclick="showHint()" aria-label="Show Hint">
+                        <i class="ri-lightbulb-line"></i>
+                        <span class="hint-count" id="hintCount">3</span>
+                    </button>
+
+                    <!-- Pause Button -->
+                    <button class="control-btn pause-btn" onclick="togglePause()" aria-label="Pause Game">
+                        <i class="ri-pause-mini-fill"></i>
+                    </button>
+
+                    <!-- Restart Button -->
+                    <button class="control-btn restart-btn" onclick="restartGame()" aria-label="Restart Game">
+                        <i class="ri-refresh-line"></i>
+                    </button>
+
+                    <!-- Close Button -->
+                    <button class="control-btn close-btn" onclick="closeGame()" aria-label="Close Game">
+                        <i class="ri-close-circle-line"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -331,38 +345,83 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Game Over!</h5>
+                    <h5 class="modal-title">
+                        <i class="ri-medal-line"></i>
+                        Game Complete!
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+                
                 <div class="modal-body">
-                    <div class="game-summary">
-                        <div class="summary-item">
-                            <i class="fas fa-star"></i>
-                            <h3>Final Score: <span id="finalScore">0</span></h3>
+                    <!-- Primary Stats -->
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-value" id="finalScore">2,450</div>
+                            <div class="stat-label">Final Score</div>
                         </div>
-                        <div class="summary-item">
-                            <i class="fas fa-layer-group"></i>
-                            <p>Level Reached: <span id="finalLevel">1</span></p>
+                        <div class="stat-card">
+                            <div class="stat-value" id="finalAccuracy">85%</div>
+                            <div class="stat-label">Accuracy</div>
                         </div>
-                        <div class="summary-stats">
-                            <div class="stat-item">
-                                <i class="fas fa-check"></i>
-                                <p>Correct: <span id="correctAnswers">0</span></p>
+                        <div class="stat-card">
+                            <div class="stat-value" id="bestCombo">×8</div>
+                            <div class="stat-label">Best Combo</div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Analysis -->
+                    <div class="performance-analysis">
+                        <h6 class="analysis-title">Performance Breakdown</h6>
+                        
+                        <!-- Operation Stats -->
+                        <div class="operations-grid">
+                            <div class="operation-stat" id="additionStat">
+                                <div class="operation-icon">
+                                    <i class="ri-add-line"></i>
+                                </div>
+                                <div class="operation-details">
+                                    <div class="operation-name">Addition</div>
+                                    <div class="operation-accuracy">
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width: 90%"></div>
+                                        </div>
+                                        <span class="accuracy-value">90%</span>
+                                    </div>
+                                    <div class="avg-time">Avg: 2.5s</div>
+                                </div>
                             </div>
-                            <div class="stat-item">
-                                <i class="fas fa-bullseye"></i>
-                                <p>Accuracy: <span id="accuracy">0%</span></p>
+
+                            <!-- Repeat for other operations -->
+                            <div class="operation-stat" id="subtractionStat">
+                                <!-- Similar structure -->
                             </div>
-                            <div class="stat-item">
-                                <i class="fas fa-fire"></i>
-                                <p>Best Combo: <span id="bestCombo">0</span></p>
+                            <div class="operation-stat" id="multiplicationStat">
+                                <!-- Similar structure -->
+                            </div>
+                            <div class="operation-stat" id="divisionStat">
+                                <!-- Similar structure -->
+                            </div>
+                        </div>
+
+                        <!-- Improvement Suggestions -->
+                        <div class="improvement-section">
+                            <h6>Areas for Improvement</h6>
+                            <div class="suggestions" id="improvementSuggestions">
+                                <!-- Dynamically populated -->
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="restartGame()">Play Again</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="modal-btn btn-play-again" onclick="restartGame()">
+                        <i class="ri-restart-line"></i>
+                        Play Again
+                    </button>
+                    <button type="button" class="modal-btn btn-close-modal" data-bs-dismiss="modal">
+                        <i class="ri-close-line"></i>
+                        Close
+                    </button>
                 </div>
             </div>
         </div>
