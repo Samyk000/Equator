@@ -166,22 +166,23 @@ const CONFIG = {
     comboMultiplier: 0.1,
     maxCombo: 10,
     hintPenalty: 0.5,
-    maxHints: 3
+    maxHints: 5
 };
 
 // Game State
 const gameState = {
+    isPlaying: false,
+    currentMode: null,
+    hintsLeft: 5,
     mode: null,
     level: 1,
     score: 0,
     combo: 0,
     maxCombo: 0,
-    hintsLeft: CONFIG.maxHints,
     correctAnswers: 0,
     totalAttempts: 0,
     timeLeft: 0,
     timer: null,
-    isPlaying: false,
     isPaused: false,
     isDaily: false,
     currentProblem: null,
@@ -214,9 +215,23 @@ const ThemeManager = {
 
     bindEvents() {
         const themeToggle = document.getElementById('themeToggle');
+        const themeToggleDesktop = document.getElementById('themeToggleDesktop');
+        
         if (themeToggle) {
             themeToggle.addEventListener('change', () => {
                 this.toggleTheme();
+                if (themeToggleDesktop) {
+                    themeToggleDesktop.checked = themeToggle.checked;
+                }
+            });
+        }
+        
+        if (themeToggleDesktop) {
+            themeToggleDesktop.addEventListener('change', () => {
+                this.toggleTheme();
+                if (themeToggle) {
+                    themeToggle.checked = themeToggleDesktop.checked;
+                }
             });
         }
     },
@@ -226,8 +241,13 @@ const ThemeManager = {
         document.body.classList.toggle('dark-theme', savedTheme === 'dark');
         
         const themeToggle = document.getElementById('themeToggle');
+        const themeToggleDesktop = document.getElementById('themeToggleDesktop');
+        
         if (themeToggle) {
             themeToggle.checked = savedTheme === 'dark';
+        }
+        if (themeToggleDesktop) {
+            themeToggleDesktop.checked = savedTheme === 'dark';
         }
     },
 
@@ -476,31 +496,27 @@ class Game {
     static startGame(mode) {
         if (!CONFIG.modes[mode]) return;
 
-        gameState.mode = mode;
         gameState.isPlaying = true;
-        gameState.isPaused = false;
+        gameState.currentMode = mode;
+        gameState.hintsLeft = 5;
         gameState.score = 0;
         gameState.level = 1;
         gameState.combo = 0;
-        gameState.hintsLeft = CONFIG.maxHints;
-        gameState.timeLeft = CONFIG.modes[mode].timeLimit;
+        gameState.maxCombo = 0;
         gameState.correctAnswers = 0;
         gameState.totalAttempts = 0;
+        gameState.timeLeft = CONFIG.modes[mode].timeLimit;
 
-        const modeSelection = document.getElementById('modeSelection');
-        const gameArea = document.getElementById('gameArea');
-
-        if (modeSelection) modeSelection.style.display = 'none';
-        if (gameArea) {
-            gameArea.style.display = 'block';
-            anime({
-                targets: gameArea,
-                opacity: [0, 1],
-                translateY: [50, 0],
-                duration: 800,
-                easing: 'easeOutCubic'
-            });
-        }
+        const gameContainer = document.querySelector('.game-container');
+        const modeSelection = document.querySelector('.mode-selection');
+        
+        // Show game container
+        gameContainer.classList.add('active');
+        // Hide mode selection but keep it in DOM
+        modeSelection.style.display = 'none';
+        
+        // Update hint count display
+        this.updateHintCount();
 
         this.generateNewProblem();
         this.startTimer();
@@ -518,7 +534,7 @@ class Game {
     }
 
     static generateNewProblem() {
-        gameState.currentProblem = ProblemGenerator.generate(gameState.mode);
+        gameState.currentProblem = ProblemGenerator.generate(gameState.currentMode);
 
         const problemDisplay = document.getElementById('problemDisplay');
         if (problemDisplay) {
@@ -571,7 +587,7 @@ class Game {
         gameState.correctAnswers++;
         gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
 
-        const basePoints = CONFIG.modes[gameState.mode].pointsPerQuestion;
+        const basePoints = CONFIG.modes[gameState.currentMode].pointsPerQuestion;
         const comboMultiplier = 1 + (Math.min(gameState.combo, CONFIG.maxCombo) * CONFIG.comboMultiplier);
         const points = Math.round(basePoints * comboMultiplier);
 
@@ -585,7 +601,7 @@ class Game {
         SoundManager.play('wrong');
         gameState.combo = 0;
 
-        if (gameState.mode === 'speed') {
+        if (gameState.currentMode === 'speed') {
             gameState.timeLeft = Math.max(0, gameState.timeLeft - 5);
         }
 
@@ -609,34 +625,32 @@ class Game {
 
     static showHint() {
         if (gameState.hintsLeft <= 0) {
-            this.showToast('No hints remaining!', 'error');
+            this.showToast('No hints remaining!', 'warning');
             return;
         }
 
-        gameState.hintsLeft--;
-        const hint = ProblemGenerator.getHint(gameState.currentProblem);
         const hintBadge = document.getElementById('hintBadge');
+        if (!hintBadge) return;
 
-        if (hintBadge) {
-            hintBadge.textContent = hint;
-            anime({
-                targets: hintBadge,
-                opacity: [0, 1],
-                translateY: [-20, 0],
-                duration: 500,
-                easing: 'easeOutCubic'
-            });
+        gameState.hintsLeft--;
+        this.updateHintCount();
 
+        const hint = ProblemGenerator.getHint(gameState.currentProblem);
+
+        hintBadge.textContent = hint;
+        hintBadge.style.display = 'block';
+        
+        hintBadge.classList.add('show-hint');
+
+        setTimeout(() => {
+            hintBadge.classList.remove('show-hint');
             setTimeout(() => {
-                anime({
-                    targets: hintBadge,
-                    opacity: 0,
-                    duration: 500,
-                    easing: 'easeOutCubic'
-                });
-            }, 3000);
-        }
+                hintBadge.style.display = 'none';
+            }, 300);
+        }, 3000);
+    }
 
+    static updateHintCount() {
         const hintCount = document.getElementById('hintCount');
         if (hintCount) {
             hintCount.textContent = gameState.hintsLeft;
@@ -664,7 +678,7 @@ class Game {
     static startTimer() {
         if (gameState.timer) clearInterval(gameState.timer);
 
-        if (gameState.mode === 'practice' || gameState.mode === 'marathon') return;
+        if (gameState.currentMode === 'practice' || gameState.currentMode === 'marathon') return;
 
         gameState.timer = setInterval(() => {
             if (!gameState.isPaused && gameState.isPlaying) {
@@ -692,7 +706,7 @@ class Game {
     }
 
     static checkLevelUp() {
-        const threshold = CONFIG.modes[gameState.mode].levelThreshold;
+        const threshold = CONFIG.modes[gameState.currentMode].levelThreshold;
         if (gameState.score >= threshold * gameState.level) {
             gameState.level++;
             SoundManager.play('levelUp');
@@ -720,8 +734,8 @@ class Game {
             gameState.statistics.recentScores.shift();
         }
 
-        if (gameState.score > gameState.statistics.bestScores[gameState.mode]) {
-            gameState.statistics.bestScores[gameState.mode] = gameState.score;
+        if (gameState.score > gameState.statistics.bestScores[gameState.currentMode]) {
+            gameState.statistics.bestScores[gameState.currentMode] = gameState.score;
         }
 
         this.updateStreak();
@@ -729,6 +743,14 @@ class Game {
         this.showGameOverModal();
         this.updateStatsSection();
         this.updateAchievementsSection();
+
+        const gameContainer = document.querySelector('.game-container');
+        const modeSelection = document.querySelector('.mode-selection');
+        
+        // Hide game container
+        gameContainer.classList.remove('active');
+        // Show mode selection
+        modeSelection.style.display = 'block';
     }
 
     static showGameOverModal() {
@@ -776,7 +798,7 @@ class Game {
         if (elements.hintCount) elements.hintCount.textContent = gameState.hintsLeft;
 
         if (elements.levelProgress) {
-            const threshold = CONFIG.modes[gameState.mode].levelThreshold;
+            const threshold = CONFIG.modes[gameState.currentMode].levelThreshold;
             const progress = (gameState.score % threshold) / threshold * 100;
 
             anime({
@@ -965,20 +987,22 @@ class Game {
     }
 
     static restartGame() {
-        if (gameState.mode) {
-            this.startGame(gameState.mode);
+        if (gameState.currentMode) {
+            this.startGame(gameState.currentMode);
         }
     }
 
     static closeGame() {
         gameState.isPlaying = false;
         if (gameState.timer) clearInterval(gameState.timer);
-
-        const modeSelection = document.getElementById('modeSelection');
-        const gameArea = document.getElementById('gameArea');
-
-        if (modeSelection) modeSelection.style.display = 'block';
-        if (gameArea) gameArea.style.display = 'none';
+        
+        const gameContainer = document.querySelector('.game-container');
+        const modeSelection = document.querySelector('.mode-selection');
+        
+        // Hide game container
+        gameContainer.classList.remove('active');
+        // Show mode selection
+        modeSelection.style.display = 'block';
     }
 
     static updateStreak() {
@@ -1103,5 +1127,232 @@ function closeGame() {
 function startDailyChallenge() {
     Game.startDailyChallenge();
 }
+
 // Initialize the game
 Game.init();
+
+// Performance tracking object
+const performanceTracker = {
+    operations: {
+        addition: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
+        subtraction: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
+        multiplication: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
+        division: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 }
+    },
+    bestCombo: 0,
+    currentCombo: 0,
+    totalScore: 0,
+    difficulty: 'easy',
+    hintsRemaining: 10, // Default for easy mode
+    timeThresholds: {
+        addition: 3,      // seconds
+        subtraction: 4,
+        multiplication: 5,
+        division: 6
+    }
+};
+
+function initializeGame(difficulty) {
+    performanceTracker.difficulty = difficulty;
+    performanceTracker.hintsRemaining = difficulty === 'easy' ? 10 : 3;
+    resetPerformanceTracker();
+}
+
+function trackAnswer(operation, isCorrect, timeSpent) {
+    const stats = performanceTracker.operations[operation];
+    stats.total++;
+    
+    if (isCorrect) {
+        stats.correct++;
+        performanceTracker.currentCombo++;
+        performanceTracker.bestCombo = Math.max(performanceTracker.bestCombo, performanceTracker.currentCombo);
+    } else {
+        stats.wrong++;
+        performanceTracker.currentCombo = 0;
+    }
+    
+    // Track slow responses
+    if (timeSpent > performanceTracker.timeThresholds[operation]) {
+        stats.slowResponses++;
+    }
+    
+    stats.totalTime += timeSpent;
+}
+
+function analyzePerformance() {
+    const analysis = {
+        weakestAreas: [],
+        suggestions: []
+    };
+
+    for (const [operation, stats] of Object.entries(performanceTracker.operations)) {
+        if (stats.total === 0) continue;
+
+        const accuracy = (stats.correct / stats.total) * 100;
+        const avgTime = stats.totalTime / stats.total;
+        const slowResponseRate = (stats.slowResponses / stats.total) * 100;
+
+        // Identify problems
+        if (accuracy < 70) {
+            analysis.weakestAreas.push({
+                operation,
+                issue: 'accuracy',
+                value: accuracy.toFixed(1)
+            });
+        }
+
+        if (slowResponseRate > 30) {
+            analysis.weakestAreas.push({
+                operation,
+                issue: 'speed',
+                value: avgTime.toFixed(1)
+            });
+        }
+
+        // Generate specific suggestions
+        if (stats.wrong > stats.correct) {
+            analysis.suggestions.push(getDetailedSuggestion(operation, 'accuracy'));
+        }
+        if (stats.slowResponses > stats.total * 0.3) {
+            analysis.suggestions.push(getDetailedSuggestion(operation, 'speed'));
+        }
+    }
+
+    return analysis;
+}
+
+function getDetailedSuggestion(operation, problemType) {
+    const suggestions = {
+        addition: {
+            accuracy: [
+                "Practice basic addition facts up to 20",
+                "Focus on carrying numbers in multi-digit addition",
+                "Try breaking numbers into friendly pairs"
+            ],
+            speed: [
+                "Practice mental math strategies",
+                "Work on number bonds to 10",
+                "Use doubles and near-doubles facts"
+            ]
+        },
+        subtraction: {
+            accuracy: [
+                "Review borrowing with multi-digit numbers",
+                "Practice basic subtraction facts",
+                "Work on number relationships"
+            ],
+            speed: [
+                "Practice counting backwards",
+                "Use addition to check subtraction",
+                "Work on mental math strategies"
+            ]
+        },
+        multiplication: {
+            accuracy: [
+                "Review multiplication tables",
+                "Practice breaking larger numbers into smaller factors",
+                "Focus on understanding place value"
+            ],
+            speed: [
+                "Practice skip counting",
+                "Learn multiplication patterns",
+                "Use known facts to solve harder problems"
+            ]
+        },
+        division: {
+            accuracy: [
+                "Review division facts and relationships",
+                "Practice with remainders",
+                "Work on estimation skills"
+            ],
+            speed: [
+                "Practice related multiplication facts",
+                "Use halving and doubling strategies",
+                "Work on mental division tricks"
+            ]
+        }
+    };
+
+    const operationSuggestions = suggestions[operation][problemType];
+    return {
+        operation,
+        problemType,
+        tips: operationSuggestions
+    };
+}
+
+// Show game over modal with performance data
+function showGameOverModal() {
+    const performance = analyzePerformance();
+    const modal = document.getElementById('gameOverModal');
+    
+    // Update final stats
+    document.getElementById('finalScore').textContent = performanceTracker.totalScore;
+    document.getElementById('finalAccuracy').textContent = calculateOverallAccuracy() + '%';
+    document.getElementById('bestCombo').textContent = `×${performanceTracker.bestCombo}`;
+    
+    // Update operation stats
+    for (const [operation, stats] of Object.entries(performance)) {
+        updateOperationStats(operation, stats);
+    }
+    
+    // Update improvement suggestions
+    const suggestions = performance.suggestions.map(s => `<p>• ${s.tips.join(', ')}</p>`).join('');
+    const suggestionsElement = document.getElementById('improvementSuggestions');
+    suggestionsElement.innerHTML = suggestions.length > 0 
+        ? suggestions
+        : '<p>Great job! Keep practicing to maintain your skills.</p>';
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// Update operation stats in modal
+function updateOperationStats(operation, stats) {
+    const statElement = document.getElementById(`${operation}Stat`);
+    if (!statElement) return;
+    
+    const progressBar = statElement.querySelector('.progress-bar');
+    const accuracyValue = statElement.querySelector('.accuracy-value');
+    const avgTime = statElement.querySelector('.avg-time');
+    
+    progressBar.style.width = `${stats.accuracy}%`;
+    progressBar.style.backgroundColor = getAccuracyColor(stats.accuracy);
+    accuracyValue.textContent = `${stats.accuracy}%`;
+    avgTime.textContent = `Avg: ${stats.avgTime.toFixed(1)}s`;
+}
+
+// Helper function to get color based on accuracy
+function getAccuracyColor(accuracy) {
+    if (accuracy >= 90) return '#4CAF50';
+    if (accuracy >= 70) return '#FFC107';
+    return '#F44336';
+}
+
+// Calculate overall accuracy
+function calculateOverallAccuracy() {
+    let totalCorrect = 0;
+    let totalQuestions = 0;
+    
+    for (const stats of Object.values(performanceTracker.operations)) {
+        totalCorrect += stats.correct;
+        totalQuestions += stats.total;
+    }
+    
+    return totalQuestions > 0 
+        ? ((totalCorrect / totalQuestions) * 100).toFixed(1)
+        : '0.0';
+}
+
+// Reset performance tracker
+function resetPerformanceTracker() {
+    for (const operation of Object.keys(performanceTracker.operations)) {
+        performanceTracker.operations[operation] = { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 };
+    }
+    performanceTracker.bestCombo = 0;
+    performanceTracker.currentCombo = 0;
+    performanceTracker.totalScore = 0;
+    performanceTracker.startTime = Date.now();
+    performanceTracker.lastAnswerTime = null;
+}
