@@ -316,156 +316,251 @@ body.dark-theme {
 }
 
 .game-container {
-    background-color: #2b2b2b;
-    border-radius: 20px; /* More rounded corners */
-    padding: 1.25rem; /* Reduced padding */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-    max-width: 1000px;
-    margin: 0 auto;
-    margin-top: 1rem; /* Added margin */
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    border-radius: 24px;
+    width: 600px; /* Reduced from 800px */
+    margin: 2rem auto;
+    padding: 2rem; /* Reduced from 2.5rem */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    opacity: 0;
+    z-index: 1000;
 }
 
-.game-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.2), transparent);
-    animation: rotate 5s linear infinite;
-    z-index: -1;
+.game-container.active {
+    display: block;
+    animation: modalFadeIn 0.4s ease forwards;
 }
 
+/* Game Header */
 .game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem; /* Reduced margin */
-}
-
-.game-status {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: start;
+    margin-bottom: 3rem;
 }
 
-.status-item {
+/* Level & Score Section */
+.stats-left {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
-    font-size: 1.1rem;
-    color: #bbb;
 }
 
-.status-item i {
-    color: #4caf50;
-    font-size: 1.2rem;
+.level-display {
+    display: flex;
+    flex-direction: column;
 }
 
-.progress-container {
-    width: 100%;
+.level-label {
+    font-size: 0.875rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.progress {
-    height: 12px;
-    background-color: #424242;
-    border-radius: 6px;
-    overflow: hidden;
+.level-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
 }
 
-.progress-bar {
-    background: linear-gradient(to right, #4caf50, #8bc34a);
-    width: 0;
-    transition: width 0.3s ease;
+.score-display {
+    margin-top: 0.5rem;
 }
 
-.problem-container {
-    background-color: #3a3a3a;
-    border-radius: 10px;
-    padding: 1.25rem; /* Reduced padding */
-    margin-bottom: 1rem; /* Reduced margin */
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+.score-value {
+    font-size: 1.25rem;
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: #666;
+    margin-left: 0.25rem;
+}
+
+/* Timer Display */
+.timer-display {
+    text-align: center;
+}
+
+.timer-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Combo Display */
+.combo-display {
+    text-align: right;
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.combo-display.active {
+    animation: comboPopIn 0.5s ease forwards;
+}
+
+.combo-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #FFC107;
+}
+
+.combo-text {
+    font-size: 0.875rem;
+    color: #FFC107;
+    margin-left: 0.25rem;
+}
+
+/* Problem Section */
+.problem-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    margin: 2rem 0;
+    text-align: center;
 }
 
 .problem-display {
-    font-size: 2.5rem;
-    text-align: center;
-    color: #f5f5f5;
-    animation: fadeIn 0.5s ease-out;
+    font-size: 3.5rem;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 2px;
 }
 
-.hint-badge {
-    background-color: #4caf50;
-    color: #f5f5f5;
-    border-radius: 20px;
-    padding: 0.6rem 1rem;
-    font-size: 1rem;
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-}
-
-.hint-badge:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
+/* Answer Section */
 .answer-section {
-    margin-bottom: 1.5rem;
+    margin: 2.5rem 0;
 }
 
-.input-group {
-    width: 100%;
-}
-
-.form-control {
-    background-color: #3a3a3a;
-    border: none;
-    color: #f5f5f5;
-    border-radius: 5px 0 0 5px;
-    padding: 0.6rem 1rem;
-    font-size: 1.1rem;
-}
-
-.btn-submit {
-    background-color: #4caf50;
-    color: #f5f5f5;
-    border: none;
-    border-radius: 0 5px 5px 0;
-    padding: 0.6rem 1.2rem;
-    font-size: 1.1rem;
-    transition: background-color 0.3s ease;
-}
-
-.btn-submit:hover {
-    background-color: #45a049;
-}
-
-.game-controls {
+.input-wrapper {
     display: flex;
-    justify-content: space-between;
     gap: 1rem;
+    justify-content: center;
+    align-items: center;
 }
 
-.btn-hint, .btn-pause, .btn-restart, .btn-close {
-    background-color: #424242;
-    color: #f5f5f5;
-    border: none;
-    border-radius: 30px;
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
+.answer-input {
+    width: 240px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    font-size: 1.5rem;
+    color: #fff;
+    text-align: center;
     transition: all 0.3s ease;
 }
 
-.btn-hint:hover, .btn-pause:hover, .btn-restart:hover, .btn-close:hover {
-    background-color: #5a5a5a;
-    transform: translateY(-2px) scale(1.05); /* Added scale effect */
+.answer-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.submit-answer {
+    background: #4CAF50;
+    border: none;
+    border-radius: 16px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-answer i {
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+.submit-answer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+/* Game Controls */
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2.5rem;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.control-btn i {
+    font-size: 1.75rem;
+}
+
+.hint-btn { color: #3B82F6; }
+.pause-btn { color: #F59E0B; }
+.restart-btn { color: #8B5CF6; }
+.close-btn { color: #EF4444; }
+
+.control-btn:hover {
+    transform: translateY(-2px);
+}
+
+.hint-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #3B82F6;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes comboPopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 }
 
 /* Stats Section */
@@ -875,6 +970,7 @@ body.dark-theme {
         width: 100%;
         min-height: 140px;
         margin: 0;
+        padding: 1rem;
     }
 
     .mode-card h3 {
@@ -885,6 +981,7 @@ body.dark-theme {
     .mode-card p {
         font-size: 0.8rem;
         margin-bottom: 0.5rem;
+        line-height: 1.2;
     }
 
     .mode-details {
@@ -915,11 +1012,19 @@ body.dark-theme {
     }
 
     .mode-cards {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
     }
 
     .mode-card {
-        min-height: 160px;
+        min-height: 130px;
+        padding: 0.75rem;
+    }
+
+    .mode-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
     }
 
     .achievements-grid {
@@ -1206,4 +1311,455 @@ html {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 1rem;
+}
+
+/* Add these new styles for mobile menu */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .navbar-nav {
+        margin: 0 auto;
+    }
+
+    .nav-item {
+        margin: 0.5rem 0;
+    }
+
+    /* Remove theme toggle from navbar items */
+    .nav-item .theme-toggle-wrapper {
+        display: none;
+    }
+
+    /* New styles for theme toggle next to hamburger */
+    .navbar .container > .theme-toggle-wrapper {
+        display: flex;
+        margin-right: 1rem;
+        margin-left: auto;
+    }
+
+    .theme-toggle {
+        width: 35px;  /* Slightly smaller for mobile */
+        height: 35px;
+    }
+}
+
+/* Hide the duplicate theme toggle on desktop */
+@media (min-width: 992px) {
+    .navbar .container > .theme-toggle-wrapper {
+        display: none;
+    }
+}
+
+/* Show mobile theme toggle only on mobile */
+@media (max-width: 991px) {
+    .navbar-nav .theme-toggle-wrapper {
+        display: none;
+    }
+    
+    .navbar .container > .theme-toggle-wrapper {
+        display: flex;
+        margin-right: 1rem;
+        margin-left: auto;
+    }
+}
+
+/* Hint Display */
+.hint-display {
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.hint-display.active {
+    display: block;
+}
+
+.hint-text {
+    color: #3B82F6;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Mode Selection */
+.mode-selection {
+    display: block; /* Changed from none */
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.mode-selection.hidden {
+    display: none;
+    opacity: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 650px) {
+    .game-container {
+        width: 95%;
+        padding: 1.25rem;
+    }
+}
+
+/* Add these styles to your existing CSS */
+#hintBadge {
+    display: none;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin: 1rem auto;
+    max-width: 80%;
+    color: #3B82F6;
+    font-size: 0.95rem;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+#hintBadge.show-hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Update the hint count styles */
+.hint-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #3B82F6;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Game Over Modal Styles */
+.modal-content {
+    background: var(--bg-secondary);
+    border: none;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.modal-header {
+    border: none;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-title i {
+    color: #FFC107;
+    font-size: 1.75rem;
+}
+
+/* Stats Summary */
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Performance Analysis */
+.performance-analysis {
+    padding: 1.5rem;
+}
+
+.analysis-title {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.operations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.operation-stat {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.operation-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.operation-icon i {
+    color: var(--text-primary);
+}
+
+.operation-details {
+    flex: 1;
+}
+
+.operation-name {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.operation-accuracy {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.progress {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.accuracy-value {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.avg-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Improvement Section */
+.improvement-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.improvement-section h6 {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.suggestions {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Modal Footer */
+.modal-footer {
+    border: none;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-play-again {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.btn-close-modal {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .operations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile-specific styles for game over modal */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 20px;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+
+    /* Stats Summary */
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+    }
+
+    /* Performance Analysis */
+    .performance-analysis {
+        padding: 1rem;
+    }
+
+    .operations-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .operation-stat {
+        padding: 0.75rem;
+    }
+
+    .operation-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+
+    .operation-name {
+        font-size: 0.8125rem;
+    }
+
+    .accuracy-value {
+        font-size: 0.6875rem;
+        min-width: 35px; /* Prevent jumping */
+    }
+
+    .avg-time {
+        font-size: 0.6875rem;
+    }
+
+    /* Progress bar */
+    .progress {
+        height: 4px;
+    }
+
+    /* Improvement Section */
+    .improvement-section {
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+    }
+
+    .improvement-section h6 {
+        font-size: 0.8125rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .suggestions {
+        font-size: 0.8125rem;
+    }
+
+    .suggestions p {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Modal Footer */
+    .modal-footer {
+        padding: 1rem;
+        gap: 0.75rem;
+        flex-direction: column; /* Stack buttons on mobile */
+    }
+
+    .modal-btn {
+        width: 100%;
+        padding: 0.75rem;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+    .stats-summary {
+        grid-template-columns: 1fr; /* Stack stats vertically on very small screens */
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        margin-bottom: 0;
+    }
 }
