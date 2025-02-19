@@ -1694,10 +1694,6 @@ html {
         font-size: 1rem;
     }
 
-    .operation-name {
-        font-size: 0.8125rem;
-    }
-
     .accuracy-value {
         font-size: 0.6875rem;
         min-width: 35px; /* Prevent jumping */
@@ -1761,5 +1757,536 @@ html {
     .stat-value {
         font-size: 1.25rem;
         margin-bottom: 0;
+    }
+}
+
+/* Progress Grid Layout */
+.progress-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Quick Stats Boxes */
+.stat-box {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: transform 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* Stats Icons Colors */
+.total-solved .stat-icon { background: rgba(52, 211, 153, 0.1); color: #34D399; }
+.accuracy .stat-icon { background: rgba(99, 102, 241, 0.1); color: #6366F1; }
+.best-streak .stat-icon { background: rgba(249, 115, 22, 0.1); color: #F97316; }
+.practice-time .stat-icon { background: rgba(168, 85, 247, 0.1); color: #A855F7; }
+
+.stat-info h3 {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Chart Cards - Performance and Mastery in one row */
+.chart-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.25rem;
+    grid-column: span 2;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Chart Containers */
+.chart-container {
+    height: 250px;
+    width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .progress-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .stat-box {
+        padding: 1rem;
+    }
+    
+    .chart-card {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 992px) {
+    .progress-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-box {
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    .chart-card {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 576px) {
+    .progress-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .stat-box {
+        padding: 0.75rem;
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .stat-info h3 {
+        font-size: 0.7rem;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+    }
+    
+    .chart-card {
+        grid-column: 1 / -1;
+        padding: 1rem;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .card-header {
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-header h3 {
+        font-size: 0.875rem;
+    }
+}
+
+/* Activity and Goals sections */
+.activity-card, .goals-card {
+    grid-column: span 2;
+}
+
+@media (max-width: 576px) {
+    .activity-card, .goals-card {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Time Range Filters */
+.time-range {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem;
+    border-radius: 10px;
+    gap: 0.25rem;
+}
+
+.range-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.range-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent-color);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 0;
+}
+
+.range-btn:hover {
+    color: var(--text-primary);
+}
+
+.range-btn.active {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+}
+
+/* Topic Mastery Card Specific Styles */
+.mastery-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mastery-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    min-height: 350px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 100%;
+    max-width: 500px; /* Limit maximum width */
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Chart Legend Styles */
+#topicsChart {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Custom styles for chart legend */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+.legend-item {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .mastery-content {
+        min-height: 300px;
+    }
+    .chart-container {
+        max-width: 450px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mastery-content {
+        min-height: 280px;
+    }
+    .chart-container {
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 576px) {
+    .mastery-content {
+        min-height: 250px;
+    }
+    .chart-container {
+        max-width: 350px;
+    }
+}
+
+/* Recent Activity Styles */
+.activity-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.activity-item:hover {
+    transform: translateX(5px);
+    background: rgba(67, 97, 238, 0.05);
+    border-color: var(--accent-color);
+}
+
+.activity-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.activity-item:hover .activity-icon {
+    transform: scale(1.1);
+}
+
+.activity-correct .activity-icon {
+    background: rgba(52, 211, 153, 0.1);
+    color: #34D399;
+}
+
+.activity-wrong .activity-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+}
+
+.activity-info {
+    flex: 1;
+}
+
+.activity-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.375rem;
+}
+
+.activity-time {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.activity-time i {
+    font-size: 0.75rem;
+    color: var(--accent-color);
+}
+
+/* Weekly Goals Styles */
+.goals-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.goals-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.goal {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.goal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-color);
+    opacity: 0.5;
+}
+
+.goal:hover {
+    transform: translateX(5px);
+    background: rgba(67, 97, 238, 0.05);
+    border-color: var(--accent-color);
+}
+
+.goal-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.goal-label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.goal-label i {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+}
+
+.goal-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    padding: 0.4rem 0.875rem;
+    background: rgba(67, 97, 238, 0.1);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.goal:hover .goal-value {
+    background: var(--accent-color);
+    color: white;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--accent-color), 
+        rgba(67, 97, 238, 0.8)
+    );
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Custom Scrollbar */
+.activity-feed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-feed::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 3px;
+}
+
+.activity-feed::-webkit-scrollbar-thumb {
+    background: rgba(67, 97, 238, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.activity-feed::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .activity-card, .goals-card {
+        padding: 1.25rem;
+    }
+    
+    .activity-feed {
+        max-height: 320px;
+    }
+    
+    .activity-item {
+        padding: 1rem;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .goal {
+        padding: 1rem;
+    }
+    
+    .goal-label {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .activity-title {
+        font-size: 0.9rem;
+    }
+    
+    .activity-time {
+        font-size: 0.8rem;
+    }
+    
+    .goal-value {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.85rem;
     }
 }
