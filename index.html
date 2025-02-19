@@ -1,453 +1,605 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MathMaster - Interactive Math Game</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/897/897368.png">
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn-icons-png.flaticon.com/512/897/897368.png"
+    />
 
     <!-- CSS Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
 
     <!-- Add Remix Icons in head -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-</head>
-<body>
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <!-- Audio Elements -->
     <audio id="correctSound" preload="auto">
-        <source src="https://www.soundjay.com/buttons/sounds/button-19.mp3" type="audio/mpeg">
+      <source
+        src="https://www.soundjay.com/buttons/sounds/button-19.mp3"
+        type="audio/mpeg"
+      />
     </audio>
     <audio id="wrongSound" preload="auto">
-        <source src="https://www.soundjay.com/buttons/sounds/button-16.mp3" type="audio/mpeg">
+      <source
+        src="https://www.soundjay.com/buttons/sounds/button-16.mp3"
+        type="audio/mpeg"
+      />
     </audio>
     <audio id="levelUpSound" preload="auto">
-        <source src="https://www.soundjay.com/buttons/sounds/button-37.mp3" type="audio/mpeg">
+      <source
+        src="https://www.soundjay.com/buttons/sounds/button-37.mp3"
+        type="audio/mpeg"
+      />
     </audio>
     <audio id="gameOverSound" preload="auto">
-        <source src="https://www.soundjay.com/buttons/sounds/button-17.mp3" type="audio/mpeg">
+      <source
+        src="https://www.soundjay.com/buttons/sounds/button-17.mp3"
+        type="audio/mpeg"
+      />
     </audio>
-
 
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-square-root-alt"></i>
-                MathMaster
-            </a>
-            <!-- Add theme toggle here for mobile -->
-            <div class="theme-toggle-wrapper">
-                <div class="theme-toggle">
-                    <input type="checkbox" id="themeToggle" />
-                    <label for="themeToggle">
-                        <i class="fas fa-sun"></i>
-                        <i class="fas fa-moon"></i>
-                    </label>
-                </div>
-            </div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#play">Play</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#stats">Stats</a>
-                    </li>
-                    <!-- Keep theme toggle here for desktop -->
-                    <li class="nav-item">
-                        <div class="theme-toggle-wrapper">
-                            <div class="theme-toggle">
-                                <input type="checkbox" id="themeToggleDesktop" />
-                                <label for="themeToggleDesktop">
-                                    <i class="fas fa-sun"></i>
-                                    <i class="fas fa-moon"></i>
-                                </label>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-square-root-alt"></i>
+          MathMaster
+        </a>
+        <!-- Add theme toggle here for mobile -->
+        <div class="theme-toggle-wrapper">
+          <div class="theme-toggle">
+            <input type="checkbox" id="themeToggle" />
+            <label for="themeToggle">
+              <i class="fas fa-sun"></i>
+              <i class="fas fa-moon"></i>
+            </label>
+          </div>
         </div>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#home">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#play">Play</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#stats">Stats</a>
+            </li>
+            <!-- Keep theme toggle here for desktop -->
+            <li class="nav-item">
+              <div class="theme-toggle-wrapper">
+                <div class="theme-toggle">
+                  <input type="checkbox" id="themeToggleDesktop" />
+                  <label for="themeToggleDesktop">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                  </label>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
 
     <!-- Home Section -->
     <section id="home" class="section-padding">
-        <div class="container">
-            <div class="row">
-                <div class="hero-content animate__animated animate__fadeInLeft">
-                    <h1>Welcome to MathMaster</h1>
-                    <p class="lead">Challenge yourself with exciting math problems and become a Math Master!</p>
-                    <div class="daily-challenge-card">
-                        <h3>Daily Challenge</h3>
-                        <div class="challenge-details">
-                            <span class="badge bg-primary">Medium</span>
-                            <span class="badge bg-success">500 Points</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="startDailyChallenge()">
-                            <i class="fas fa-play"></i> Start Challenge
-                        </button>
-                    </div>
-                </div>
+      <div class="container">
+        <div class="row">
+          <div class="hero-content animate__animated animate__fadeInLeft">
+            <h1>Welcome to MathMaster</h1>
+            <p class="lead">
+              Challenge yourself with exciting math problems and become a Math
+              Master!
+            </p>
+            <div class="daily-challenge-card">
+              <h3>Daily Challenge</h3>
+              <div class="challenge-details">
+                <span class="badge bg-primary">Medium</span>
+                <span class="badge bg-success">500 Points</span>
+              </div>
+              <button class="btn btn-primary" onclick="startDailyChallenge()">
+                <i class="fas fa-play"></i> Start Challenge
+              </button>
             </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Game Section -->
     <section id="play" class="section-padding">
-        <div class="container">
-            <!-- Game Mode Selection -->
-            <div class="mode-selection" id="modeSelection">
-                <h2 class="section-title">Choose Your Game Mode</h2>
-                <div class="mode-cards">
-                    <!-- Basic Mode -->
-                    <div class="mode-card" onclick="selectMode('basic')">
-                        <div class="mode-icon">
-                            <i class="fas fa-plus-minus"></i>
-                        </div>
-                        <h3>Basic Math</h3>
-                        <p>Practice fundamental operations</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-clock"></i> 60s</span>
-                            <span><i class="fas fa-star"></i> Easy</span>
-                        </div>
-                    </div>
-
-                    <!-- Advanced Mode -->
-                    <div class="mode-card" onclick="selectMode('advanced')">
-                        <div class="mode-icon">
-                            <i class="fas fa-superscript"></i>
-                        </div>
-                        <h3>Advanced</h3>
-                        <p>Challenge with complex operations</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-clock"></i> 90s</span>
-                            <span><i class="fas fa-star"></i> Hard</span>
-                        </div>
-                    </div>
-
-                    <!-- Speed Mode -->
-                    <div class="mode-card" onclick="selectMode('speed')">
-                        <div class="mode-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h3>Speed Math</h3>
-                        <p>Race against time</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-clock"></i> 30s</span>
-                            <span><i class="fas fa-star"></i> Medium</span>
-                        </div>
-                    </div>
-
-                    <!-- Practice Mode -->
-                    <div class="mode-card" onclick="selectMode('practice')">
-                        <div class="mode-icon">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <h3>Practice</h3>
-                        <p>Learn at your own pace</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-infinity"></i> No Timer</span>
-                            <span><i class="fas fa-star"></i> Custom</span>
-                        </div>
-                    </div>
-
-                    <!-- Puzzle Mode -->
-                    <div class="mode-card" onclick="selectMode('puzzle')">
-                        <div class="mode-icon">
-                            <i class="fas fa-puzzle-piece"></i>
-                        </div>
-                        <h3>Math Puzzle</h3>
-                        <p>Solve mathematical puzzles</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-clock"></i> 120s</span>
-                            <span><i class="fas fa-star"></i> Challenging</span>
-                        </div>
-                    </div>
-
-                    <!-- Marathon Mode -->
-                    <div class="mode-card" onclick="selectMode('marathon')">
-                        <div class="mode-icon">
-                            <i class="fas fa-running"></i>
-                        </div>
-                        <h3>Math Marathon</h3>
-                        <p>Endless math challenges</p>
-                        <div class="mode-details">
-                            <span><i class="fas fa-infinity"></i> No Timer</span>
-                            <span><i class="fas fa-star"></i> Variable</span>
-                        </div>
-                    </div>
-                </div>
+      <div class="container">
+        <!-- Game Mode Selection -->
+        <div class="mode-selection" id="modeSelection">
+          <h2 class="section-title">Choose Your Game Mode</h2>
+          <div class="mode-cards">
+            <!-- Basic Mode -->
+            <div class="mode-card" onclick="selectMode('basic')">
+              <div class="mode-icon">
+                <i class="fas fa-plus-minus"></i>
+              </div>
+              <h3>Basic Math</h3>
+              <p>Practice fundamental operations</p>
+              <div class="mode-details">
+                <span><i class="fas fa-clock"></i> 60s</span>
+                <span><i class="fas fa-star"></i> Easy</span>
+              </div>
             </div>
 
-            <!-- Game Container -->
-            <div class="game-container">
-                <!-- Game Header -->
-                <div class="game-header">
-                    <!-- Level & Score Section -->
-                    <div class="stats-left">
-                        <div class="level-display">
-                            <span class="level-label">Level</span>
-                            <span class="level-value" id="currentLevel">5</span>
-                        </div>
-                        <div class="score-display">
-                            <span class="score-value" id="currentScore">2,450</span>
-                            <span class="score-label">points</span>
-                        </div>
-                    </div>
-
-                    <!-- Timer Section -->
-                    <div class="timer-display">
-                        <div class="timer-value" id="gameTimer">01:45</div>
-                    </div>
-
-                    <!-- Combo Display (appears dynamically) -->
-                    <div class="combo-display" id="comboDisplay">
-                        <span class="combo-value">×3</span>
-                        <span class="combo-text">COMBO!</span>
-                    </div>
-                </div>
-
-                <!-- Problem Section -->
-                <div class="problem-section">
-                    <div class="problem-display" id="problemDisplay">12 × 8 = ?</div>
-                    <div id="hintBadge"></div>
-                </div>
-
-                <!-- Answer Section -->
-                <div class="answer-section">
-                    <div class="input-wrapper">
-                        <input type="number" 
-                               class="answer-input" 
-                               id="answerInput"
-                               placeholder="Enter your answer"
-                               autocomplete="off">
-                        <button class="submit-answer" onclick="checkAnswer()">
-                            <i class="ri-arrow-right-line"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Game Controls -->
-                <div class="game-controls">
-                    <!-- Hint Button -->
-                    <button class="control-btn hint-btn" onclick="showHint()" aria-label="Show Hint">
-                        <i class="ri-lightbulb-line"></i>
-                        <span class="hint-count" id="hintCount">3</span>
-                    </button>
-
-                    <!-- Pause Button -->
-                    <button class="control-btn pause-btn" onclick="togglePause()" aria-label="Pause Game">
-                        <i class="ri-pause-mini-fill"></i>
-                    </button>
-
-                    <!-- Restart Button -->
-                    <button class="control-btn restart-btn" onclick="restartGame()" aria-label="Restart Game">
-                        <i class="ri-refresh-line"></i>
-                    </button>
-
-                    <!-- Close Button -->
-                    <button class="control-btn close-btn" onclick="closeGame()" aria-label="Close Game">
-                        <i class="ri-close-circle-line"></i>
-                    </button>
-                </div>
+            <!-- Advanced Mode -->
+            <div class="mode-card" onclick="selectMode('advanced')">
+              <div class="mode-icon">
+                <i class="fas fa-superscript"></i>
+              </div>
+              <h3>Advanced</h3>
+              <p>Challenge with complex operations</p>
+              <div class="mode-details">
+                <span><i class="fas fa-clock"></i> 90s</span>
+                <span><i class="fas fa-star"></i> Hard</span>
+              </div>
             </div>
+
+            <!-- Speed Mode -->
+            <div class="mode-card" onclick="selectMode('speed')">
+              <div class="mode-icon">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <h3>Speed Math</h3>
+              <p>Race against time</p>
+              <div class="mode-details">
+                <span><i class="fas fa-clock"></i> 30s</span>
+                <span><i class="fas fa-star"></i> Medium</span>
+              </div>
+            </div>
+
+            <!-- Practice Mode -->
+            <div class="mode-card" onclick="selectMode('practice')">
+              <div class="mode-icon">
+                <i class="fas fa-book"></i>
+              </div>
+              <h3>Practice</h3>
+              <p>Learn at your own pace</p>
+              <div class="mode-details">
+                <span><i class="fas fa-infinity"></i> No Timer</span>
+                <span><i class="fas fa-star"></i> Custom</span>
+              </div>
+            </div>
+
+            <!-- Puzzle Mode -->
+            <div class="mode-card" onclick="selectMode('puzzle')">
+              <div class="mode-icon">
+                <i class="fas fa-puzzle-piece"></i>
+              </div>
+              <h3>Math Puzzle</h3>
+              <p>Solve mathematical puzzles</p>
+              <div class="mode-details">
+                <span><i class="fas fa-clock"></i> 120s</span>
+                <span><i class="fas fa-star"></i> Challenging</span>
+              </div>
+            </div>
+
+            <!-- Marathon Mode -->
+            <div class="mode-card" onclick="selectMode('marathon')">
+              <div class="mode-icon">
+                <i class="fas fa-running"></i>
+              </div>
+              <h3>Math Marathon</h3>
+              <p>Endless math challenges</p>
+              <div class="mode-details">
+                <span><i class="fas fa-infinity"></i> No Timer</span>
+                <span><i class="fas fa-star"></i> Variable</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Game Container -->
+        <div class="game-container">
+          <!-- Game Header -->
+          <div class="game-header">
+            <!-- Level & Score Section -->
+            <div class="stats-left">
+              <div class="level-display">
+                <span class="level-label">Level</span>
+                <span class="level-value" id="currentLevel">5</span>
+              </div>
+              <div class="score-display">
+                <span class="score-value" id="currentScore">2,450</span>
+                <span class="score-label">points</span>
+              </div>
+            </div>
+
+            <!-- Timer Section -->
+            <div class="timer-display">
+              <div class="timer-value" id="gameTimer">01:45</div>
+            </div>
+
+            <!-- Combo Display (appears dynamically) -->
+            <div class="combo-display" id="comboDisplay">
+              <span class="combo-value">×3</span>
+              <span class="combo-text">COMBO!</span>
+            </div>
+          </div>
+
+          <!-- Problem Section -->
+          <div class="problem-section">
+            <div class="problem-display" id="problemDisplay">12 × 8 = ?</div>
+            <div id="hintBadge"></div>
+          </div>
+
+          <!-- Answer Section -->
+          <div class="answer-section">
+            <div class="input-wrapper">
+              <input
+                type="number"
+                class="answer-input"
+                id="answerInput"
+                placeholder="Enter your answer"
+                autocomplete="off"
+              />
+              <button class="submit-answer" onclick="checkAnswer()">
+                <i class="ri-arrow-right-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Game Controls -->
+          <div class="game-controls">
+            <!-- Hint Button -->
+            <button
+              class="control-btn hint-btn"
+              onclick="showHint()"
+              aria-label="Show Hint"
+            >
+              <i class="ri-lightbulb-line"></i>
+              <span class="hint-count" id="hintCount">3</span>
+            </button>
+
+            <!-- Pause Button -->
+            <button
+              class="control-btn pause-btn"
+              onclick="togglePause()"
+              aria-label="Pause Game"
+            >
+              <i class="ri-pause-mini-fill"></i>
+            </button>
+
+            <!-- Restart Button -->
+            <button
+              class="control-btn restart-btn"
+              onclick="restartGame()"
+              aria-label="Restart Game"
+            >
+              <i class="ri-refresh-line"></i>
+            </button>
+
+            <!-- Close Button -->
+            <button
+              class="control-btn close-btn"
+              onclick="closeGame()"
+              aria-label="Close Game"
+            >
+              <i class="ri-close-circle-line"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Stats Section -->
     <section id="stats" class="section-padding">
-        <div class="container">
-            <h2 class="section-title">Your Progress</h2>
-            <div class="stats-grid">
-                <div class="stats-card">
-                    <h3>Performance History</h3>
-                    <canvas id="performanceChart"></canvas>
-                </div>
-                <div class="stats-card">
-                    <h3>Topic Mastery</h3>
-                    <canvas id="topicsChart"></canvas>
-                </div>
-                <div class="stats-card">
-                    <h3>Recent Activity</h3>
-                    <div class="activity-list" id="recentActivity"></div>
-                </div>
-                <div class="stats-card">
-                    <h3>Streaks and Goals</h3>
-                    <div class="streak-info">
-                        <p>Current Streak: <span id="currentStreak">0</span> days</p>
-                        <p>Longest Streak: <span id="longestStreak">0</span> days</p>
-                        <p>Weekly Goal: <span id="weeklyGoal">10</span> challenges</p>
-                        <div class="progress">
-                            <div class="progress-bar" id="weeklyGoalProgress" role="progressbar"></div>
-                        </div>
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="section-title">Your Progress</h2>
+        <div class="progress-grid">
+          <!-- Quick Stats -->
+          <div class="stat-box total-solved">
+            <div class="stat-icon">
+              <i class="fas fa-check-circle"></i>
             </div>
+            <div class="stat-info">
+              <h3>Problems Solved</h3>
+              <span class="stat-value" id="totalSolved">0</span>
+            </div>
+          </div>
+
+          <div class="stat-box accuracy">
+            <div class="stat-icon">
+              <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Accuracy</h3>
+              <span class="stat-value" id="accuracyRate">0%</span>
+            </div>
+          </div>
+
+          <div class="stat-box best-streak">
+            <div class="stat-icon">
+              <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Best Streak</h3>
+              <span class="stat-value" id="bestStreak">0</span>
+            </div>
+          </div>
+
+          <div class="stat-box practice-time">
+            <div class="stat-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Practice Time</h3>
+              <span class="stat-value" id="totalTime">0h</span>
+            </div>
+          </div>
+
+          <!-- Performance Chart -->
+          <div class="chart-card performance">
+            <div class="card-header">
+              <h3>Performance Trend</h3>
+              <div class="time-range">
+                <button class="range-btn active">Week</button>
+                <button class="range-btn">Month</button>
+                <button class="range-btn">Year</button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="performanceChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Topic Mastery -->
+          <div class="chart-card mastery">
+            <div class="card-header">
+              <h3>Topic Mastery</h3>
+            </div>
+            <div class="mastery-grid">
+              <div class="chart-container">
+                <canvas id="topicsChart"></canvas>
+              </div>
+              <div class="mastery-stats" id="masteryStats">
+                <!-- Will be populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="activity-card">
+            <div class="card-header">
+              <h3>Recent Activity</h3>
+            </div>
+            <div class="activity-feed" id="activityFeed">
+              <!-- Will be populated by JS -->
+            </div>
+          </div>
+
+          <!-- Weekly Goals -->
+          <div class="goals-card">
+            <div class="card-header">
+              <h3>Weekly Goals</h3>
+            </div>
+            <div class="goals-progress">
+              <div class="goal">
+                <div class="goal-info">
+                  <span>Practice Sessions</span>
+                  <span class="goal-value">5/7</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress" style="width: 71%"></div>
+                </div>
+              </div>
+              <div class="goal">
+                <div class="goal-info">
+                  <span>Problems Solved</span>
+                  <span class="goal-value">25/50</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress" style="width: 50%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Achievements Section -->
     <section id="achievements" class="section-padding">
-        <div class="container">
-            <h2 class="section-title">Achievements</h2>
-            <div class="achievements-grid" id="achievementsContainer">
-                <div class="achievement-card" data-achievement="beginner">
-                    <i class="fas fa-graduation-cap achievement-icon"></i>
-                    <h3>Math Beginner</h3>
-                    <p>Complete your first game</p>
-                </div>
-                <div class="achievement-card" data-achievement="speedster">
-                    <i class="fas fa-bolt achievement-icon"></i>
-                    <h3>Speedster</h3>
-                    <p>Complete a Speed Math game in under 20 seconds</p>
-                </div>
-                <div class="achievement-card" data-achievement="puzzle-master">
-                    <i class="fas fa-puzzle-piece achievement-icon"></i>
-                    <h3>Puzzle Master</h3>
-                    <p>Solve 10 Math Puzzles</p>
-                </div>
-                <div class="achievement-card" data-achievement="marathon-runner">
-                    <i class="fas fa-running achievement-icon"></i>
-                    <h3>Marathon Runner</h3>
-                    <p>Reach level 10 in Math Marathon</p>
-                </div>
-                <div class="achievement-card" data-achievement="hint-hunter">
-                    <i class="fas fa-lightbulb achievement-icon"></i>
-                    <h3>Hint Hunter</h3>
-                    <p>Use 50 hints across all games</p>
-                </div>
-                <div class="achievement-card" data-achievement="perfect-score">
-                    <i class="fas fa-star achievement-icon"></i>
-                    <h3>Perfect Score</h3>
-                    <p>Get a perfect score in any game mode</p>
-                </div>
-            </div>
+      <div class="container">
+        <h2 class="section-title">Achievements</h2>
+        <div class="achievements-grid" id="achievementsContainer">
+          <div class="achievement-card" data-achievement="beginner">
+            <i class="fas fa-graduation-cap achievement-icon"></i>
+            <h3>Math Beginner</h3>
+            <p>Complete your first game</p>
+          </div>
+          <div class="achievement-card" data-achievement="speedster">
+            <i class="fas fa-bolt achievement-icon"></i>
+            <h3>Speedster</h3>
+            <p>Complete a Speed Math game in under 20 seconds</p>
+          </div>
+          <div class="achievement-card" data-achievement="puzzle-master">
+            <i class="fas fa-puzzle-piece achievement-icon"></i>
+            <h3>Puzzle Master</h3>
+            <p>Solve 10 Math Puzzles</p>
+          </div>
+          <div class="achievement-card" data-achievement="marathon-runner">
+            <i class="fas fa-running achievement-icon"></i>
+            <h3>Marathon Runner</h3>
+            <p>Reach level 10 in Math Marathon</p>
+          </div>
+          <div class="achievement-card" data-achievement="hint-hunter">
+            <i class="fas fa-lightbulb achievement-icon"></i>
+            <h3>Hint Hunter</h3>
+            <p>Use 50 hints across all games</p>
+          </div>
+          <div class="achievement-card" data-achievement="perfect-score">
+            <i class="fas fa-star achievement-icon"></i>
+            <h3>Perfect Score</h3>
+            <p>Get a perfect score in any game mode</p>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Modals -->
     <!-- Game Over Modal -->
     <div class="modal fade" id="gameOverModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="ri-medal-line"></i>
-                        Game Complete!
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <!-- Primary Stats -->
-                    <div class="stats-summary">
-                        <div class="stat-card">
-                            <div class="stat-value" id="finalScore">2,450</div>
-                            <div class="stat-label">Final Score</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="finalAccuracy">85%</div>
-                            <div class="stat-label">Accuracy</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="bestCombo">×8</div>
-                            <div class="stat-label">Best Combo</div>
-                        </div>
-                    </div>
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="ri-medal-line"></i>
+              Game Complete!
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
 
-                    <!-- Performance Analysis -->
-                    <div class="performance-analysis">
-                        <h6 class="analysis-title">Performance Breakdown</h6>
-                        
-                        <!-- Operation Stats -->
-                        <div class="operations-grid">
-                            <div class="operation-stat" id="additionStat">
-                                <div class="operation-icon">
-                                    <i class="ri-add-line"></i>
-                                </div>
-                                <div class="operation-details">
-                                    <div class="operation-name">Addition</div>
-                                    <div class="operation-accuracy">
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width: 90%"></div>
-                                        </div>
-                                        <span class="accuracy-value">90%</span>
-                                    </div>
-                                    <div class="avg-time">Avg: 2.5s</div>
-                                </div>
-                            </div>
-
-                            <!-- Repeat for other operations -->
-                            <div class="operation-stat" id="subtractionStat">
-                                <!-- Similar structure -->
-                            </div>
-                            <div class="operation-stat" id="multiplicationStat">
-                                <!-- Similar structure -->
-                            </div>
-                            <div class="operation-stat" id="divisionStat">
-                                <!-- Similar structure -->
-                            </div>
-                        </div>
-
-                        <!-- Improvement Suggestions -->
-                        <div class="improvement-section">
-                            <h6>Areas for Improvement</h6>
-                            <div class="suggestions" id="improvementSuggestions">
-                                <!-- Dynamically populated -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="modal-btn btn-play-again" onclick="restartGame()">
-                        <i class="ri-restart-line"></i>
-                        Play Again
-                    </button>
-                    <button type="button" class="modal-btn btn-close-modal" data-bs-dismiss="modal">
-                        <i class="ri-close-line"></i>
-                        Close
-                    </button>
-                </div>
+          <div class="modal-body">
+            <!-- Primary Stats -->
+            <div class="stats-summary">
+              <div class="stat-card">
+                <div class="stat-value" id="finalScore">2,450</div>
+                <div class="stat-label">Final Score</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="finalAccuracy">85%</div>
+                <div class="stat-label">Accuracy</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="bestCombo">×8</div>
+                <div class="stat-label">Best Combo</div>
+              </div>
             </div>
+
+            <!-- Performance Analysis -->
+            <div class="performance-analysis">
+              <h6 class="analysis-title">Performance Breakdown</h6>
+
+              <!-- Operation Stats -->
+              <div class="operations-grid">
+                <div class="operation-stat" id="additionStat">
+                  <div class="operation-icon">
+                    <i class="ri-add-line"></i>
+                  </div>
+                  <div class="operation-details">
+                    <div class="operation-name">Addition</div>
+                    <div class="operation-accuracy">
+                      <div class="progress">
+                        <div class="progress-bar" style="width: 90%"></div>
+                      </div>
+                      <span class="accuracy-value">90%</span>
+                    </div>
+                    <div class="avg-time">Avg: 2.5s</div>
+                  </div>
+                </div>
+
+                <!-- Repeat for other operations -->
+                <div class="operation-stat" id="subtractionStat">
+                  <!-- Similar structure -->
+                </div>
+                <div class="operation-stat" id="multiplicationStat">
+                  <!-- Similar structure -->
+                </div>
+                <div class="operation-stat" id="divisionStat">
+                  <!-- Similar structure -->
+                </div>
+              </div>
+
+              <!-- Improvement Suggestions -->
+              <div class="improvement-section">
+                <h6>Areas for Improvement</h6>
+                <div class="suggestions" id="improvementSuggestions">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="modal-btn btn-play-again"
+              onclick="restartGame()"
+            >
+              <i class="ri-restart-line"></i>
+              Play Again
+            </button>
+            <button
+              type="button"
+              class="modal-btn btn-close-modal"
+              data-bs-dismiss="modal"
+            >
+              <i class="ri-close-line"></i>
+              Close
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Achievement Unlock Modal -->
     <div class="modal fade" id="achievementModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-body text-center">
-                    <div class="achievement-unlock">
-                        <i class="fas fa-trophy achievement-icon"></i>
-                        <h4 id="achievementTitle"></h4>
-                        <p id="achievementDescription"></p>
-                    </div>
-                </div>
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-body text-center">
+            <div class="achievement-unlock">
+              <i class="fas fa-trophy achievement-icon"></i>
+              <h4 id="achievementTitle"></h4>
+              <p id="achievementDescription"></p>
             </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Pause Overlay -->
-    <div id="pauseOverlay" class="pause-overlay" style="display: none;">
-        <div class="pause-content">
-            <h2>Paused</h2>
-            <p>Click anywhere to resume</p>
-        </div>
+    <div id="pauseOverlay" class="pause-overlay" style="display: none">
+      <div class="pause-content">
+        <h2>Paused</h2>
+        <p>Click anywhere to resume</p>
+      </div>
     </div>
 
     <!-- JavaScript Libraries -->
@@ -457,5 +609,5 @@
 
     <!-- Custom JavaScript -->
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
