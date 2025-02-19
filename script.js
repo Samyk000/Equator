@@ -453,13 +453,17 @@ class ProblemGenerator {
 // Game Class
 class Game {
     static init() {
-        this.bindEventListeners();
-        ThemeManager.init();
-        SoundManager.init();
-        this.loadSavedData();
-        this.showInitialState();
-        this.updateStatsSection();
-        this.updateAchievementsSection();
+        try {
+            this.bindEventListeners();
+            ThemeManager.init();
+            SoundManager.init();
+            this.loadSavedData();
+            this.showInitialState();
+            this.updateStatsSection();
+            this.updateAchievementsSection();
+        } catch (error) {
+            console.log('Initialization error:', error);
+        }
     }
 
     static bindEventListeners() {
@@ -496,6 +500,20 @@ class Game {
     static startGame(mode) {
         if (!CONFIG.modes[mode]) return;
 
+        // Set start time when game begins
+        gameState.startTime = Date.now();
+        
+        // Initialize statistics if they don't exist
+        if (!gameState.statistics) {
+            gameState.statistics = {
+                totalProblems: 0,
+                correctAnswers: 0,
+                totalPlayTime: 0,
+                longestStreak: 0,
+                recentActivities: []
+            };
+        }
+        
         gameState.isPlaying = true;
         gameState.currentMode = mode;
         gameState.hintsLeft = 5;
@@ -556,29 +574,33 @@ class Game {
     }
 
     static checkAnswer() {
-        if (!gameState.isPlaying || gameState.isPaused) return;
+        try {
+            if (!gameState.isPlaying || gameState.isPaused) return;
 
-        const answerInput = document.getElementById('answerInput');
-        if (!answerInput) return;
+            const answerInput = document.getElementById('answerInput');
+            if (!answerInput) return;
 
-        const userAnswer = parseFloat(answerInput.value);
-        if (isNaN(userAnswer)) {
-            this.showToast('Please enter a valid number', 'error');
-            return;
+            const userAnswer = parseFloat(answerInput.value);
+            if (isNaN(userAnswer)) {
+                this.showToast('Please enter a valid number', 'error');
+                return;
+            }
+
+            gameState.totalAttempts++;
+            const isCorrect = Math.abs(userAnswer - gameState.currentProblem.answer) < 0.1;
+
+            if (isCorrect) {
+                this.handleCorrectAnswer();
+            } else {
+                this.handleWrongAnswer();
+            }
+
+            this.updateStatistics(gameState.currentProblem, userAnswer, isCorrect);
+            AchievementSystem.check(gameState);
+            this.updateUI();
+        } catch (error) {
+            console.log('Error checking answer:', error);
         }
-
-        gameState.totalAttempts++;
-        const isCorrect = Math.abs(userAnswer - gameState.currentProblem.answer) < 0.1;
-
-        if (isCorrect) {
-            this.handleCorrectAnswer();
-        } else {
-            this.handleWrongAnswer();
-        }
-
-        this.updateStatistics(isCorrect);
-        AchievementSystem.check(gameState);
-        this.updateUI();
     }
 
     static handleCorrectAnswer() {
@@ -782,34 +804,15 @@ class Game {
     }
 
     static updateUI() {
-        if (!gameState.isPlaying) return;
-
-        const elements = {
-            currentScore: document.getElementById('currentScore'),
-            currentLevel: document.getElementById('currentLevel'),
-            comboMultiplier: document.getElementById('comboMultiplier'),
-            hintCount: document.getElementById('hintCount'),
-            levelProgress: document.getElementById('levelProgress')
-        };
-
-        if (elements.currentScore) elements.currentScore.textContent = gameState.score;
-        if (elements.currentLevel) elements.currentLevel.textContent = gameState.level;
-        if (elements.comboMultiplier) elements.comboMultiplier.textContent = `x${gameState.combo}`;
-        if (elements.hintCount) elements.hintCount.textContent = gameState.hintsLeft;
-
-        if (elements.levelProgress) {
-            const threshold = CONFIG.modes[gameState.currentMode].levelThreshold;
-            const progress = (gameState.score % threshold) / threshold * 100;
-
-            anime({
-                targets: elements.levelProgress,
-                width: `${progress}%`,
-                duration: 300,
-                easing: 'easeOutCubic'
-            });
+        try {
+            if (document.getElementById('stats')) {
+                this.updateStats();
+                this.updateStatsSection();
+                this.updateActivityFeed();
+            }
+        } catch (error) {
+            console.log('Error updating UI:', error);
         }
-
-        this.updateTimerDisplay();
     }
 
     static showComboIndicator(points) {
@@ -862,25 +865,45 @@ class Game {
         }, 3000);
     }
 
-    static updateStatistics(isCorrect) {
-        const operation = gameState.currentProblem.operation;
-
-        if (!gameState.statistics.topicsPerformance[operation]) {
-            gameState.statistics.topicsPerformance[operation] = {
-                attempts: 0,
-                correct: 0
-            };
+    static updateStatistics(problem, userAnswer, isCorrect) {
+        const stats = gameState.statistics;
+        
+        // Update basic stats
+        stats.totalProblems = (stats.totalProblems || 0) + 1;
+        stats.correctAnswers = (stats.correctAnswers || 0) + (isCorrect ? 1 : 0);
+        
+        // Update recent activities
+        if (!stats.recentActivities) stats.recentActivities = [];
+        stats.recentActivities.push({
+            problem,
+            answer: userAnswer,
+            correct: isCorrect,
+            timestamp: Date.now()
+        });
+        
+        // Keep only last 50 activities
+        if (stats.recentActivities.length > 50) {
+            stats.recentActivities.shift();
         }
-
-        gameState.statistics.topicsPerformance[operation].attempts++;
-        if (isCorrect) {
-            gameState.statistics.topicsPerformance[operation].correct++;
+        
+        // Update weekly tracking
+        const now = new Date();
+        const weekStart = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0,0,0,0);
+        
+        if (!stats.currentWeek || stats.currentWeek < weekStart) {
+            // Reset weekly stats
+            stats.currentWeek = weekStart;
+            stats.weeklyProblems = 0;
+            stats.weeklyPracticeSessions = 0;
         }
-
-        gameState.statistics.averageAccuracy = 
-            (gameState.correctAnswers / gameState.totalAttempts) * 100;
-
-        this.updateCharts();
+        
+        stats.weeklyProblems = (stats.weeklyProblems || 0) + 1;
+        
+        // Save updated statistics
+        this.saveGameData();
+        
+        // Update the display
+        this.updateStatsSection();
     }
 
     static updateCharts() {
@@ -978,11 +1001,15 @@ class Game {
     }
 
     static loadSavedData() {
-        const savedData = localStorage.getItem('mathGameData');
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            gameState.statistics = data.statistics;
-            gameState.achievements = new Set(data.achievements);
+        try {
+            const savedData = localStorage.getItem('mathGameData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                gameState.statistics = data.statistics;
+                gameState.achievements = new Set(data.achievements);
+            }
+        } catch (error) {
+            console.log('Error loading saved data:', error);
         }
     }
 
@@ -993,15 +1020,33 @@ class Game {
     }
 
     static closeGame() {
-        gameState.isPlaying = false;
-        if (gameState.timer) clearInterval(gameState.timer);
+        if (gameState.isPlaying) {
+            // Calculate practice time before closing
+            const endTime = Date.now();
+            const startTime = gameState.startTime || endTime;
+            const sessionTimeInSeconds = Math.floor((endTime - startTime) / 1000); // Convert to seconds
+            
+            // Initialize totalPlayTime if it doesn't exist
+            if (!gameState.statistics.totalPlayTime) {
+                gameState.statistics.totalPlayTime = 0;
+            }
+            
+            // Add current session time to total play time
+            gameState.statistics.totalPlayTime += sessionTimeInSeconds;
+            
+            // Update other game state
+            gameState.isPlaying = false;
+            if (gameState.timer) clearInterval(gameState.timer);
+            
+            // Save game data and update display
+            this.saveGameData();
+            this.updateStatsSection();
+        }
         
         const gameContainer = document.querySelector('.game-container');
         const modeSelection = document.querySelector('.mode-selection');
         
-        // Hide game container
         gameContainer.classList.remove('active');
-        // Show mode selection
         modeSelection.style.display = 'block';
     }
 
@@ -1020,30 +1065,69 @@ class Game {
     }
 
     static updateStatsSection() {
-        document.getElementById('currentStreak').textContent = gameState.statistics.currentStreak;
-        document.getElementById('longestStreak').textContent = gameState.statistics.longestStreak;
-        document.getElementById('weeklyGoal').textContent = gameState.statistics.weeklyGoal;
-        
-        const weeklyGoalProgress = document.getElementById('weeklyGoalProgress');
-        if (weeklyGoalProgress) {
-            const progress = (gameState.statistics.weeklyGoalProgress / gameState.statistics.weeklyGoal) * 100;
-            anime({
-                targets: weeklyGoalProgress,
-                width: `${progress}%`,
-                duration: 300,
-                easing: 'easeOutCubic'
-            });
-        }
+        try {
+            const elements = {
+                totalSolved: document.getElementById('totalSolved'),
+                accuracyRate: document.getElementById('accuracyRate'),
+                bestStreak: document.getElementById('bestStreak'),
+                totalTime: document.getElementById('totalTime'),
+                performanceChart: document.getElementById('performanceChart'),
+                topicsChart: document.getElementById('topicsChart'),
+                activityFeed: document.getElementById('activityFeed'),
+                weeklyProgress: document.querySelector('.goals-progress')
+            };
 
-        const recentActivity = document.getElementById('recentActivity');
-        if (recentActivity) {
-            recentActivity.innerHTML = '';
-            gameState.statistics.recentScores.slice().reverse().forEach((score, index) => {
-                const item = document.createElement('div');
-                item.className = 'activity-item';
-                item.textContent = `Game ${index + 1}: Score ${score}`;
-                recentActivity.appendChild(item);
-            });
+            // Update basic stats
+            if (elements.totalSolved) {
+                elements.totalSolved.textContent = gameState.statistics.totalProblems || 0;
+            }
+
+            if (elements.accuracyRate) {
+                const accuracy = gameState.statistics.totalProblems ? 
+                    (gameState.statistics.correctAnswers / gameState.statistics.totalProblems * 100).toFixed(1) : 0;
+                elements.accuracyRate.textContent = `${accuracy}%`;
+            }
+
+            if (elements.bestStreak) {
+                elements.bestStreak.textContent = gameState.statistics.longestStreak || 0;
+            }
+
+            // Format and display total practice time
+            if (elements.totalTime) {
+                const totalSeconds = gameState.statistics.totalPlayTime || 0;
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                
+                let timeDisplay;
+                if (hours > 0) {
+                    timeDisplay = `${hours}h ${minutes}m`;
+                } else if (minutes > 0) {
+                    timeDisplay = `${minutes}m`;
+                } else {
+                    timeDisplay = `${totalSeconds}s`;
+                }
+                
+                elements.totalTime.textContent = timeDisplay;
+            }
+
+            // Update other elements
+            if (elements.performanceChart) {
+                this.updatePerformanceChart();
+            }
+
+            if (elements.topicsChart) {
+                this.updateTopicsChart();
+            }
+
+            if (elements.activityFeed) {
+                this.updateActivityFeed(elements.activityFeed);
+            }
+
+            if (elements.weeklyProgress) {
+                this.updateWeeklyGoals(elements.weeklyProgress);
+            }
+        } catch (error) {
+            console.error('Error updating stats section:', error);
         }
     }
 
@@ -1059,6 +1143,89 @@ class Game {
             } else { card.classList.add('unlocked');
             }
         });
+    }
+
+    static updateActivityFeed(feedElement) {
+        // Clear existing items
+        feedElement.innerHTML = '';
+
+        // Get last 10 activities
+        const recentActivities = gameState.statistics.recentActivities || [];
+        const lastTenActivities = recentActivities.slice(-10).reverse();
+
+        lastTenActivities.forEach(activity => {
+            const activityItem = document.createElement('div');
+            activityItem.className = `activity-item activity-${activity.correct ? 'correct' : 'wrong'}`;
+
+            activityItem.innerHTML = `
+                <div class="activity-icon">
+                    <i class="fas fa-${activity.correct ? 'check' : 'times'}"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">${activity.problem.problem} = ${activity.answer}</div>
+                    <div class="activity-time">
+                        <i class="ri-time-line"></i>
+                        ${this.formatTimeAgo(activity.timestamp)}
+                    </div>
+                </div>
+            `;
+
+            feedElement.appendChild(activityItem);
+        });
+    }
+
+    static updateWeeklyGoals(goalsElement) {
+        const goals = {
+            practice: {
+                current: gameState.statistics.weeklyPracticeSessions || 0,
+                target: 7,
+                label: 'Practice Sessions',
+                icon: 'ri-book-line'
+            },
+            problems: {
+                current: gameState.statistics.weeklyProblems || 0,
+                target: gameState.statistics.weeklyGoal || 50,
+                label: 'Problems Solved',
+                icon: 'ri-checkbox-circle-line'
+            }
+        };
+
+        goalsElement.innerHTML = Object.entries(goals).map(([key, goal]) => `
+            <div class="goal">
+                <div class="goal-info">
+                    <div class="goal-label">
+                        <i class="${goal.icon}"></i>
+                        <span>${goal.label}</span>
+                    </div>
+                    <span class="goal-value">${goal.current}/${goal.target}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: ${(goal.current / goal.target * 100)}%"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    static formatTimeAgo(timestamp) {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        
+        const intervals = {
+            year: 31536000,
+            month: 2592000,
+            week: 604800,
+            day: 86400,
+            hour: 3600,
+            minute: 60
+        };
+
+        for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+            const interval = Math.floor(seconds / secondsInUnit);
+            if (interval >= 1) {
+                return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
+            }
+        }
+        
+        return 'Just now';
     }
 }
 
