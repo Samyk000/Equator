@@ -122,24 +122,50 @@
     <!-- Home Section -->
     <section id="home" class="section-padding">
       <div class="container">
-        <div class="row">
-          <div class="hero-content animate__animated animate__fadeInLeft">
-            <h1>Welcome to MathMaster</h1>
-            <p class="lead">
-              Challenge yourself with exciting math problems and become a Math
-              Master!
-            </p>
-            <div class="daily-challenge-card">
-              <h3>Daily Challenge</h3>
-              <div class="challenge-details">
-                <span class="badge bg-primary">Medium</span>
-                <span class="badge bg-success">500 Points</span>
-              </div>
-              <button class="btn btn-primary" onclick="startDailyChallenge()">
-                <i class="fas fa-play"></i> Start Challenge
-              </button>
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+          <div class="stat-box total-solved">
+            <div class="stat-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Solved</h3>
+              <span class="stat-value" id="totalSolved">0</span>
             </div>
           </div>
+
+          <div class="stat-box accuracy">
+            <div class="stat-icon">
+              <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Accuracy</h3>
+              <span class="stat-value" id="accuracyRate">0%</span>
+            </div>
+          </div>
+
+          <div class="stat-box best-streak">
+            <div class="stat-icon">
+              <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Streak</h3>
+              <span class="stat-value" id="bestStreak">0</span>
+            </div>
+          </div>
+
+          <div class="stat-box practice-time">
+            <div class="stat-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Time</h3>
+              <span class="stat-value" id="totalTime">0h</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <!-- Hero content and daily challenge card were here -->
         </div>
       </div>
     </section>
@@ -203,29 +229,29 @@
               </div>
             </div>
 
-            <!-- Puzzle Mode -->
-            <div class="mode-card" onclick="selectMode('puzzle')">
+            <!-- Sequence Detective Mode -->
+            <div class="mode-card" onclick="selectMode('sequence')">
               <div class="mode-icon">
-                <i class="fas fa-puzzle-piece"></i>
+                <i class="fas fa-stream"></i>
               </div>
-              <h3>Math Puzzle</h3>
-              <p>Solve mathematical puzzles</p>
+              <h3>Sequence Detective</h3>
+              <p>Discover patterns and predict what comes next</p>
               <div class="mode-details">
                 <span><i class="fas fa-clock"></i> 120s</span>
                 <span><i class="fas fa-star"></i> Challenging</span>
               </div>
             </div>
 
-            <!-- Marathon Mode -->
-            <div class="mode-card" onclick="selectMode('marathon')">
+            <!-- Equation Builder Mode -->
+            <div class="mode-card" onclick="selectMode('equation')">
               <div class="mode-icon">
-                <i class="fas fa-running"></i>
+                <i class="fas fa-equals"></i>
               </div>
-              <h3>Math Marathon</h3>
-              <p>Endless math challenges</p>
+              <h3>Equation Builder</h3>
+              <p>Create equations to reach the target</p>
               <div class="mode-details">
-                <span><i class="fas fa-infinity"></i> No Timer</span>
-                <span><i class="fas fa-star"></i> Variable</span>
+                <span><i class="fas fa-clock"></i> 180s</span>
+                <span><i class="fas fa-star"></i> Expert</span>
               </div>
             </div>
           </div>
@@ -239,10 +265,10 @@
             <div class="stats-left">
               <div class="level-display">
                 <span class="level-label">Level</span>
-                <span class="level-value" id="currentLevel">5</span>
+                <span class="level-value" id="currentLevel">1</span>
               </div>
               <div class="score-display">
-                <span class="score-value" id="currentScore">2,450</span>
+                <span class="score-value" id="currentScore">0</span>
                 <span class="score-label">points</span>
               </div>
             </div>
@@ -272,7 +298,7 @@
                 type="number"
                 class="answer-input"
                 id="answerInput"
-                placeholder="Enter your answer"
+                placeholder="Answer"
                 autocomplete="off"
               />
               <button class="submit-answer" onclick="checkAnswer()">
@@ -329,47 +355,8 @@
       <div class="container">
         <h2 class="section-title">Your Progress</h2>
         <div class="progress-grid">
-          <!-- Quick Stats -->
-          <div class="stat-box total-solved">
-            <div class="stat-icon">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="stat-info">
-              <h3>Problems Solved</h3>
-              <span class="stat-value" id="totalSolved">0</span>
-            </div>
-          </div>
-
-          <div class="stat-box accuracy">
-            <div class="stat-icon">
-              <i class="fas fa-bullseye"></i>
-            </div>
-            <div class="stat-info">
-              <h3>Accuracy</h3>
-              <span class="stat-value" id="accuracyRate">0%</span>
-            </div>
-          </div>
-
-          <div class="stat-box best-streak">
-            <div class="stat-icon">
-              <i class="fas fa-fire"></i>
-            </div>
-            <div class="stat-info">
-              <h3>Best Streak</h3>
-              <span class="stat-value" id="bestStreak">0</span>
-            </div>
-          </div>
-
-          <div class="stat-box practice-time">
-            <div class="stat-icon">
-              <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-              <h3>Practice Time</h3>
-              <span class="stat-value" id="totalTime">0h</span>
-            </div>
-          </div>
-
+          <!-- Remove the duplicate stat boxes from here -->
+          
           <!-- Performance Chart -->
           <div class="chart-card performance">
             <div class="card-header">
@@ -445,35 +432,71 @@
       <div class="container">
         <h2 class="section-title">Achievements</h2>
         <div class="achievements-grid" id="achievementsContainer">
-          <div class="achievement-card" data-achievement="beginner">
-            <i class="fas fa-graduation-cap achievement-icon"></i>
-            <h3>Math Beginner</h3>
-            <p>Complete your first game</p>
+          <!-- Basic Achievements -->
+          <div class="achievement-card" data-achievement="firstWin">
+            <i class="fas fa-award achievement-icon"></i>
+            <h3>First Victory</h3>
+            <div class="achievement-details">
+              <p>Solve your first problem correctly</p>
+            </div>
           </div>
+
+          <div class="achievement-card" data-achievement="perfectTen">
+            <i class="fas fa-fire achievement-icon"></i>
+            <h3>Perfect Ten</h3>
+            <div class="achievement-details">
+              <p>Achieve a 10x combo</p>
+            </div>
+          </div>
+
+          <!-- Mode-specific Achievements -->
           <div class="achievement-card" data-achievement="speedster">
             <i class="fas fa-bolt achievement-icon"></i>
             <h3>Speedster</h3>
-            <p>Complete a Speed Math game in under 20 seconds</p>
+            <div class="achievement-details">
+              <p>Score 1000 points in speed mode</p>
+            </div>
           </div>
-          <div class="achievement-card" data-achievement="puzzle-master">
-            <i class="fas fa-puzzle-piece achievement-icon"></i>
-            <h3>Puzzle Master</h3>
-            <p>Solve 10 Math Puzzles</p>
+
+          <div class="achievement-card" data-achievement="mathWhiz">
+            <i class="fas fa-brain achievement-icon"></i>
+            <h3>Math Whiz</h3>
+            <div class="achievement-details">
+              <p>Score 5000 points in a single game</p>
+            </div>
           </div>
-          <div class="achievement-card" data-achievement="marathon-runner">
-            <i class="fas fa-running achievement-icon"></i>
-            <h3>Marathon Runner</h3>
-            <p>Reach level 10 in Math Marathon</p>
+
+          <!-- New Achievements -->
+          <div class="achievement-card" data-achievement="sequenceMaster">
+            <i class="fas fa-stream achievement-icon"></i>
+            <h3>Sequence Master</h3>
+            <div class="achievement-details">
+              <p>Solve 10 sequence problems correctly</p>
+            </div>
           </div>
-          <div class="achievement-card" data-achievement="hint-hunter">
+
+          <div class="achievement-card" data-achievement="equationGenius">
+            <i class="fas fa-equals achievement-icon"></i>
+            <h3>Equation Genius</h3>
+            <div class="achievement-details">
+              <p>Create 5 different valid equations for the same target</p>
+            </div>
+          </div>
+
+          <div class="achievement-card" data-achievement="patternPro">
+            <i class="fas fa-chart-line achievement-icon"></i>
+            <h3>Pattern Professional</h3>
+            <div class="achievement-details">
+              <p>Solve sequence problems with 90% accuracy</p>
+            </div>
+          </div>
+
+          <div class="achievement-card" data-achievement="noHints">
             <i class="fas fa-lightbulb achievement-icon"></i>
-            <h3>Hint Hunter</h3>
-            <p>Use 50 hints across all games</p>
-          </div>
-          <div class="achievement-card" data-achievement="perfect-score">
-            <i class="fas fa-star achievement-icon"></i>
-            <h3>Perfect Score</h3>
-            <p>Get a perfect score in any game mode</p>
+            <h3>Pure Genius</h3>
+            <div class="achievement-details">
+              <p>Score 2000 points without using hints</p>
+            </div>
           </div>
         </div>
       </div>
@@ -611,3 +634,4 @@
     <script src="script.js"></script>
   </body>
 </html>
+
