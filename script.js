@@ -124,13 +124,20 @@ const AchievementSystem = {
     },
 
     award(achievement, gameState) {
-        gameState.achievements.add(achievement.id);
-        Game.showAchievementNotification(achievement);
-        Game.saveGameData();
+        if (!gameState.achievements.has(achievement.id)) {
+            gameState.achievements.add(achievement.id);
+            this.showAchievementNotification(achievement);
+            Game.saveGameData();
+            
+            // Update achievement card visual state
+            const card = document.querySelector(`[data-achievement="${achievement.id}"]`);
+            if (card) {
+                card.classList.add('unlocked');
+            }
+        }
     },
 
     showAchievementNotification(achievement) {
-        // Create notification container if it doesn't exist
         let container = document.querySelector('.notification-container');
         if (!container) {
             container = document.createElement('div');
@@ -138,7 +145,6 @@ const AchievementSystem = {
             document.body.appendChild(container);
         }
 
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = 'achievement-notification animate__animated animate__slideInRight';
         notification.innerHTML = `
@@ -147,7 +153,7 @@ const AchievementSystem = {
                     <i class="fas fa-trophy"></i>
                 </div>
                 <div class="achievement-details">
-                    <h4>${achievement.title}</h4>
+                    <h4>Achievement Unlocked: ${achievement.title}</h4>
                     <p>${achievement.description}</p>
                 </div>
             </div>
@@ -602,22 +608,27 @@ class Game {
     }
 
     static bindEventListeners() {
-        const answerInput = document.getElementById('answerInput');
-        if (answerInput) {
-            answerInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.checkAnswer();
-            });
-        }
-
         document.addEventListener('keydown', (e) => {
-            if (gameState.isPlaying) {
+            if (gameState.isPlaying && !gameState.isPaused) {
                 switch(e.key.toLowerCase()) {
                     case 'h': this.showHint(); break;
                     case 'p': this.togglePause(); break;
                     case 'r': this.restartGame(); break;
+                    case 'enter': this.checkAnswer(); break;
                 }
             }
         });
+
+        // Focus answer input when game starts
+        const answerInput = document.getElementById('answerInput');
+        if (answerInput) {
+            answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.checkAnswer();
+                }
+            });
+        }
     }
 
     static showInitialState() {
@@ -669,6 +680,8 @@ class Game {
         this.generateNewProblem();
         this.startTimer();
         this.updateUI();
+        gameState.startTime = Date.now();
+        this.updateAllStats();
     }
 
     static startDailyChallenge() {
@@ -752,7 +765,11 @@ class Game {
         SoundManager.play('correct');
         gameState.combo++;
         gameState.correctAnswers++;
+        gameState.totalAttempts++;
         gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+
+        // Immediate stats update
+        this.updateQuickStats();
 
         const basePoints = CONFIG.modes[gameState.currentMode].pointsPerQuestion;
         const comboMultiplier = 1 + (Math.min(gameState.combo, CONFIG.maxCombo) * CONFIG.comboMultiplier);
@@ -762,17 +779,26 @@ class Game {
         this.showComboIndicator(points);
         this.checkLevelUp();
         this.generateNewProblem();
+        this.updateTopicMastery(gameState.currentProblem, true);
+        this.checkAchievements();
+        this.saveGameData();
     }
 
     static handleWrongAnswer() {
         SoundManager.play('wrong');
         gameState.combo = 0;
+        gameState.totalAttempts++;
+
+        // Immediate stats update
+        this.updateQuickStats();
 
         if (gameState.currentMode === 'speed') {
             gameState.timeLeft = Math.max(0, gameState.timeLeft - 5);
         }
 
         this.showToast('Incorrect! Try again', 'error');
+        this.updateTopicMastery(gameState.currentProblem, false);
+        this.saveGameData();
 
         const answerInput = document.getElementById('answerInput');
         if (answerInput) {
@@ -788,6 +814,35 @@ class Game {
                 easing: 'easeInOutQuad'
             });
         }
+    }
+
+    static updateTopicMastery(problem, isCorrect) {
+        const operation = problem.operation;
+        if (!gameState.statistics.topicsPerformance[operation]) {
+            gameState.statistics.topicsPerformance[operation] = {
+                attempts: 0,
+                correct: 0
+            };
+        }
+
+        const stats = gameState.statistics.topicsPerformance[operation];
+        stats.attempts++;
+        if (isCorrect) {
+            stats.correct++;
+        }
+
+        // Update chart immediately
+        if (document.getElementById('topicsChart')) {
+            this.updateTopicsChart();
+        }
+    }
+
+    static updateAllStats() {
+        this.updateQuickStats();
+        this.updateCharts();
+        this.updateActivityFeed();
+        this.updateStatsSection();
+        this.saveGameData();
     }
 
     static showHint() {
@@ -918,6 +973,7 @@ class Game {
         gameContainer.classList.remove('active');
         // Show mode selection
         modeSelection.style.display = 'block';
+        this.updateAllStats();
     }
 
     static showGameOverModal() {
@@ -962,18 +1018,16 @@ class Game {
 
     static showComboIndicator(points) {
         const indicator = document.createElement('div');
-        indicator.className = 'combo-indicator';
+        indicator.className = 'combo-indicator animate__animated animate__fadeOutUp';
         indicator.textContent = `+${points} (${gameState.combo}x Combo!)`;
         document.body.appendChild(indicator);
 
-        anime({
-            targets: indicator,
-            translateY: [-50, -100],
-            opacity: [1, 0],
-            duration: 1000,
-            easing: 'easeOutCubic',
-            complete: () => indicator.remove()
+        requestAnimationFrame(() => {
+            indicator.style.opacity = '0';
+            indicator.style.transform = 'translateY(-50px)';
         });
+
+        setTimeout(() => indicator.remove(), 1000);
     }
 
     static showToast(message, type) {
@@ -1282,10 +1336,7 @@ class Game {
 
         Array.from(achievementsContainer.children).forEach(card => {
             const achievementId = card.getAttribute('data-achievement');
-            const achievement = AchievementSystem.achievements.find(a => a.id === achievementId);
-            if (achievement && gameState.achievements.has(achievement.id)) {
-                card.classList.add('unlocked');
-            }
+            card.classList.toggle('unlocked', gameState.achievements.has(achievementId));
         });
     }
 
@@ -1431,6 +1482,40 @@ class Game {
             scoreElement.textContent = gameState.score.toLocaleString();
         }
     }
+
+    static checkAchievements() {
+        AchievementSystem.check(gameState);
+    }
+
+    static updateQuickStats() {
+        requestAnimationFrame(() => {
+            // Update solved count
+            document.querySelectorAll('[id="totalSolved"]').forEach(el => {
+                el.textContent = gameState.correctAnswers;
+            });
+
+            // Update accuracy
+            const accuracy = gameState.totalAttempts > 0 
+                ? (gameState.correctAnswers / gameState.totalAttempts * 100).toFixed(1) 
+                : '0.0';
+            document.querySelectorAll('[id="accuracyRate"]').forEach(el => {
+                el.textContent = `${accuracy}%`;
+            });
+
+            // Update streak
+            document.querySelectorAll('[id="bestStreak"]').forEach(el => {
+                el.textContent = gameState.maxCombo;
+            });
+
+            // Update time
+            const sessionTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            document.querySelectorAll('[id="totalTime"]').forEach(el => {
+                const minutes = Math.floor(sessionTime / 60);
+                const hours = Math.floor(minutes / 60);
+                el.textContent = hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+            });
+        });
+    }
 }
 
 // Event Listeners and Initialization
@@ -1438,15 +1523,14 @@ document.addEventListener('DOMContentLoaded', () => {
     Game.init();
 
     // Mode Selection
-    const modeButtons = document.querySelectorAll('.mode-card');
-    modeButtons.forEach(button => {
+    document.querySelectorAll('.mode-card').forEach(button => {
         button.addEventListener('click', () => {
             const mode = button.getAttribute('data-mode');
             if (mode) Game.startGame(mode);
         });
     });
 
-    // Pause Overlay Click Handler
+    // Handle pause overlay clicks
     const pauseOverlay = document.getElementById('pauseOverlay');
     if (pauseOverlay) {
         pauseOverlay.addEventListener('click', () => {
@@ -1455,50 +1539,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Key Bindings for Answer Input
-    const answerInput = document.getElementById('answerInput');
-    if (answerInput) {
-        answerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                Game.checkAnswer();
-            }
-        });
-    }
-
-    // Initialize theme manager
-    ThemeManager.init();
-
-    // Achievement cards click handler
-    const achievementCards = document.querySelectorAll('.achievement-card');
-    let activeCard = null;
-
-    achievementCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            // Only handle clicks on mobile
-            if (window.innerWidth <= 768) {
-                // Remove active class from previous card
-                if (activeCard && activeCard !== card) {
-                    activeCard.classList.remove('active');
-                }
-                
-                // Toggle active state on clicked card
-                card.classList.toggle('active');
-                activeCard = card.classList.contains('active') ? card : null;
-                
-                // Prevent click event from bubbling up
-                e.stopPropagation();
-            }
-        });
-    });
-
-    // Close active card when clicking outside
-    document.addEventListener('click', () => {
-        if (activeCard) {
-            activeCard.classList.remove('active');
-            activeCard = null;
-        }
-    });
 });
 
 // Global Function Declarations (for HTML onclick handlers)
@@ -1530,249 +1570,6 @@ function startDailyChallenge() {
     Game.startDailyChallenge();
 }
 
-// Initialize the game
-Game.init();
-
-// Performance tracking object
-const performanceTracker = {
-    operations: {
-        addition: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
-        subtraction: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
-        multiplication: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 },
-        division: { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 }
-    },
-    bestCombo: 0,
-    currentCombo: 0,
-    totalScore: 0,
-    difficulty: 'easy',
-    hintsRemaining: 10, // Default for easy mode
-    timeThresholds: {
-        addition: 3,      // seconds
-        subtraction: 4,
-        multiplication: 5,
-        division: 6
-    }
-};
-
-function initializeGame(difficulty) {
-    performanceTracker.difficulty = difficulty;
-    performanceTracker.hintsRemaining = difficulty === 'easy' ? 10 : 3;
-    resetPerformanceTracker();
-}
-
-function trackAnswer(operation, isCorrect, timeSpent) {
-    const stats = performanceTracker.operations[operation];
-    stats.total++;
-    
-    if (isCorrect) {
-        stats.correct++;
-        performanceTracker.currentCombo++;
-        performanceTracker.bestCombo = Math.max(performanceTracker.bestCombo, performanceTracker.currentCombo);
-    } else {
-        stats.wrong++;
-        performanceTracker.currentCombo = 0;
-    }
-    
-    // Track slow responses
-    if (timeSpent > performanceTracker.timeThresholds[operation]) {
-        stats.slowResponses++;
-    }
-    
-    stats.totalTime += timeSpent;
-}
-
-function analyzePerformance() {
-    const analysis = {
-        weakestAreas: [],
-        suggestions: []
-    };
-
-    for (const [operation, stats] of Object.entries(performanceTracker.operations)) {
-        if (stats.total === 0) continue;
-
-        const accuracy = (stats.correct / stats.total) * 100;
-        const avgTime = stats.totalTime / stats.total;
-        const slowResponseRate = (stats.slowResponses / stats.total) * 100;
-
-        // Identify problems
-        if (accuracy < 70) {
-            analysis.weakestAreas.push({
-                operation,
-                issue: 'accuracy',
-                value: accuracy.toFixed(1)
-            });
-        }
-
-        if (slowResponseRate > 30) {
-            analysis.weakestAreas.push({
-                operation,
-                issue: 'speed',
-                value: avgTime.toFixed(1)
-            });
-        }
-
-        // Generate specific suggestions
-        if (stats.wrong > stats.correct) {
-            analysis.suggestions.push(getDetailedSuggestion(operation, 'accuracy'));
-        }
-        if (stats.slowResponses > stats.total * 0.3) {
-            analysis.suggestions.push(getDetailedSuggestion(operation, 'speed'));
-        }
-    }
-
-    return analysis;
-}
-
-function getDetailedSuggestion(operation, problemType) {
-    const suggestions = {
-        addition: {
-            accuracy: [
-                "Practice basic addition facts up to 20",
-                "Focus on carrying numbers in multi-digit addition",
-                "Try breaking numbers into friendly pairs"
-            ],
-            speed: [
-                "Practice mental math strategies",
-                "Work on number bonds to 10",
-                "Use doubles and near-doubles facts"
-            ]
-        },
-        subtraction: {
-            accuracy: [
-                "Review borrowing with multi-digit numbers",
-                "Practice basic subtraction facts",
-                "Work on number relationships"
-            ],
-            speed: [
-                "Practice counting backwards",
-                "Use addition to check subtraction",
-                "Work on mental math strategies"
-            ]
-        },
-        multiplication: {
-            accuracy: [
-                "Review multiplication tables",
-                "Practice breaking larger numbers into smaller factors",
-                "Focus on understanding place value"
-            ],
-            speed: [
-                "Practice skip counting",
-                "Learn multiplication patterns",
-                "Use known facts to solve harder problems"
-            ]
-        },
-        division: {
-            accuracy: [
-                "Review division facts and relationships",
-                "Practice with remainders",
-                "Work on estimation skills"
-            ],
-            speed: [
-                "Practice related multiplication facts",
-                "Use halving and doubling strategies",
-                "Work on mental division tricks"
-            ]
-        }
-    };
-
-    const operationSuggestions = suggestions[operation][problemType];
-    return {
-        operation,
-        problemType,
-        tips: operationSuggestions
-    };
-}
-
-// Show game over modal with performance data
-function showGameOverModal() {
-    const performance = analyzePerformance();
-    const modal = document.getElementById('gameOverModal');
-    
-    // Update final stats
-    document.getElementById('finalScore').textContent = performanceTracker.totalScore;
-    document.getElementById('finalAccuracy').textContent = calculateOverallAccuracy() + '%';
-    document.getElementById('bestCombo').textContent = `×${performanceTracker.bestCombo}`;
-    
-    // Update operation stats
-    for (const [operation, stats] of Object.entries(performance)) {
-        updateOperationStats(operation, stats);
-    }
-    
-    // Update improvement suggestions
-    const suggestions = performance.suggestions.map(s => `<p>• ${s.tips.join(', ')}</p>`).join('');
-    const suggestionsElement = document.getElementById('improvementSuggestions');
-    suggestionsElement.innerHTML = suggestions.length > 0 
-        ? suggestions
-        : '<p>Great job! Keep practicing to maintain your skills.</p>';
-    
-    // Show modal
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
-}
-
-// Update operation stats in modal
-function updateOperationStats(operation, stats) {
-    const statElement = document.getElementById(`${operation}Stat`);
-    if (!statElement) return;
-    
-    const progressBar = statElement.querySelector('.progress-bar');
-    const accuracyValue = statElement.querySelector('.accuracy-value');
-    const avgTime = statElement.querySelector('.avg-time');
-    
-    progressBar.style.width = `${stats.accuracy}%`;
-    progressBar.style.backgroundColor = getAccuracyColor(stats.accuracy);
-    accuracyValue.textContent = `${stats.accuracy}%`;
-    avgTime.textContent = `Avg: ${stats.avgTime.toFixed(1)}s`;
-}
-
-// Helper function to get color based on accuracy
-function getAccuracyColor(accuracy) {
-    if (accuracy >= 90) return '#4CAF50';
-    if (accuracy >= 70) return '#FFC107';
-    return '#F44336';
-}
-
-// Calculate overall accuracy
-function calculateOverallAccuracy() {
-    let totalCorrect = 0;
-    let totalQuestions = 0;
-    
-    for (const stats of Object.values(performanceTracker.operations)) {
-        totalCorrect += stats.correct;
-        totalQuestions += stats.total;
-    }
-    
-    return totalQuestions > 0 
-        ? ((totalCorrect / totalQuestions) * 100).toFixed(1)
-        : '0.0';
-}
-
-// Reset performance tracker
-function resetPerformanceTracker() {
-    for (const operation of Object.keys(performanceTracker.operations)) {
-        performanceTracker.operations[operation] = { correct: 0, wrong: 0, total: 0, totalTime: 0, slowResponses: 0 };
-    }
-    performanceTracker.bestCombo = 0;
-    performanceTracker.currentCombo = 0;
-    performanceTracker.totalScore = 0;
-    performanceTracker.startTime = Date.now();
-    performanceTracker.lastAnswerTime = null;
-}
-
-// Add statistics persistence
-const StatisticsManager = {
-    saveStats() {
-        localStorage.setItem('mathMasterStats', JSON.stringify(gameState.statistics));
-    },
-
-    loadStats() {
-        const savedStats = localStorage.getItem('mathMasterStats');
-        if (savedStats) {
-            gameState.statistics = JSON.parse(savedStats);
-        }
-    }
-};
-
 // Add CSS for achievement notification
 const style = document.createElement('style');
 style.textContent = `
@@ -1783,7 +1580,6 @@ style.textContent = `
         z-index: 9999;
         pointer-events: none;
     }
-
     .achievement-notification {
         display: flex;
         align-items: center;
