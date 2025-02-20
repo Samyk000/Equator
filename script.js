@@ -92,6 +92,26 @@ const AchievementSystem = {
             title: 'Daily Challenger',
             description: 'Complete a daily challenge',
             condition: (state) => state.isDaily && state.score > 0
+        },
+        {
+            id: 'sequenceMaster',
+            title: 'Sequence Master',
+            description: 'Solve 10 sequence problems correctly',
+            condition: (state) => state.mode === 'sequence' && state.correctAnswers >= 10
+        },
+        {
+            id: 'equationGenius',
+            title: 'Equation Genius',
+            description: 'Create 5 different valid equations for the same target',
+            condition: (state) => state.mode === 'equation' && state.uniqueSolutions >= 5
+        },
+        {
+            id: 'patternPro',
+            title: 'Pattern Professional',
+            description: 'Solve sequence problems with 90% accuracy',
+            condition: (state) => state.mode === 'sequence' && 
+                                state.correctAnswers / state.totalAttempts >= 0.9 &&
+                                state.totalAttempts >= 10
         }
     ],
 
@@ -105,15 +125,41 @@ const AchievementSystem = {
 
     award(achievement, gameState) {
         gameState.achievements.add(achievement.id);
-        Game.showToast(`Achievement Unlocked: ${achievement.title}!`, 'achievement');
-        this.showAchievementModal(achievement);
+        Game.showAchievementNotification(achievement);
+        Game.saveGameData();
     },
 
-    showAchievementModal(achievement) {
-        const achievementModal = new bootstrap.Modal(document.getElementById('achievementModal'));
-        document.getElementById('achievementTitle').textContent = achievement.title;
-        document.getElementById('achievementDescription').textContent = achievement.description;
-        achievementModal.show();
+    showAchievementNotification(achievement) {
+        // Create notification container if it doesn't exist
+        let container = document.querySelector('.notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notification-container';
+            document.body.appendChild(container);
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification animate__animated animate__slideInRight';
+        notification.innerHTML = `
+            <div class="achievement-content">
+                <div class="achievement-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="achievement-details">
+                    <h4>${achievement.title}</h4>
+                    <p>${achievement.description}</p>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(notification);
+
+        // Remove notification after delay
+        setTimeout(() => {
+            notification.classList.replace('animate__slideInRight', 'animate__slideOutRight');
+            setTimeout(() => notification.remove(), 1000);
+        }, 3000);
     }
 };
 
@@ -148,19 +194,20 @@ const CONFIG = {
             pointsPerQuestion: 50,
             levelThreshold: 300
         },
-        puzzle: {
-            operations: ['+', '-', '*', '/'],
+        sequence: {
+            types: ['arithmetic', 'geometric', 'fibonacci', 'skipCounting'],
             maxNumber: 50,
             timeLimit: 120,
+            pointsPerQuestion: 200,
+            levelThreshold: 1000
+        },
+        equation: {
+            operations: ['+', '-', '*', '/'],
+            numbersCount: 4,
+            maxNumber: 20,
+            timeLimit: 180,
             pointsPerQuestion: 250,
             levelThreshold: 1500
-        },
-        marathon: {
-            operations: ['+', '-', '*', '/', '^', '√'],
-            maxNumber: 100,
-            timeLimit: Infinity,
-            pointsPerQuestion: 300,
-            levelThreshold: 2000
         }
     },
     comboMultiplier: 0.1,
@@ -196,8 +243,8 @@ const gameState = {
             advanced: 0,
             speed: 0,
             practice: 0,
-            puzzle: 0,
-            marathon: 0
+            sequence: 0,
+            equation: 0
         },
         currentStreak: 0,
         longestStreak: 0,
@@ -266,28 +313,34 @@ class ProblemGenerator {
                 throw new Error(`Invalid game mode: ${mode}`);
             }
 
-            const operation = this.getRandomOperation(config.operations);
-            let problem = this.createProblem(operation, config);
-            
-            // Add default values if missing
-            if (!problem.num1) problem.num1 = 0;
-            if (!problem.num2) problem.num2 = 0;
-            if (!problem.answer) problem.answer = 0;
-            if (!problem.problem) problem.problem = '0 + 0';
-            
-            this.validateProblem(problem);
-            return problem;
+            // Handle different modes
+            switch(mode) {
+                case 'sequence':
+                    return this.generateSequence(config);
+                case 'equation':
+                    return this.generateEquation(config);
+                default:
+                    // For basic arithmetic modes
+                    if (!config.operations || config.operations.length === 0) {
+                        throw new Error('No operations available');
+                    }
+                    const operation = this.getRandomOperation(config.operations);
+                    let problem = this.createProblem(operation, config);
+                    
+                    // Add default values if missing
+                    if (!problem.num1) problem.num1 = 0;
+                    if (!problem.num2) problem.num2 = 0;
+                    if (!problem.answer) problem.answer = 0;
+                    if (!problem.problem) problem.problem = '0 + 0';
+                    
+                    this.validateProblem(problem);
+                    return problem;
+            }
 
         } catch (error) {
             console.error('Problem generation failed:', error);
             // Return a simple fallback problem
-            return {
-                problem: '2 + 2',
-                answer: 4,
-                operation: '+',
-                num1: 2,
-                num2: 2
-            };
+            return this.getFallbackProblem();
         }
     }
 
@@ -448,6 +501,88 @@ class ProblemGenerator {
                 return `The answer is between ${Math.floor(problem.answer - 5)} and ${Math.ceil(problem.answer + 5)}`;
         }
     }
+
+    static generateSequence(config) {
+        const type = config.types[Math.floor(Math.random() * config.types.length)];
+        let sequence = [];
+        let answer = 0;
+
+        switch(type) {
+            case 'arithmetic':
+                const diff = Math.floor(Math.random() * 10) + 1;
+                const start = Math.floor(Math.random() * 20);
+                sequence = Array.from({length: 4}, (_, i) => start + diff * i);
+                answer = start + diff * 4;
+                break;
+
+            case 'geometric':
+                const ratio = Math.floor(Math.random() * 3) + 2;
+                const startNum = Math.floor(Math.random() * 5) + 1;
+                sequence = Array.from({length: 4}, (_, i) => startNum * Math.pow(ratio, i));
+                answer = startNum * Math.pow(ratio, 4);
+                break;
+
+            case 'fibonacci':
+                let a = 1, b = 1;
+                sequence = [a, b];
+                for(let i = 2; i < 4; i++) {
+                    const next = a + b;
+                    sequence.push(next);
+                    a = b;
+                    b = next;
+                }
+                answer = sequence[sequence.length - 1] + sequence[sequence.length - 2];
+                break;
+
+            case 'skipCounting':
+                const skip = Math.floor(Math.random() * 5) + 2;
+                const startVal = Math.floor(Math.random() * 10);
+                sequence = Array.from({length: 4}, (_, i) => startVal + skip * i);
+                answer = startVal + skip * 4;
+                break;
+        }
+
+        return {
+            problem: `What comes next? ${sequence.join(', ')}, ?`,
+            answer: answer,
+            type: type,
+            sequence: sequence,
+            operation: 'sequence' // Add this to maintain consistency
+        };
+    }
+
+    static generateEquation(config) {
+        const numbers = Array.from({length: config.numbersCount}, 
+            () => Math.floor(Math.random() * config.maxNumber) + 1);
+        const target = Math.floor(Math.random() * 50) + 10;
+
+        return {
+            problem: `Make ${target} using ${numbers.join(', ')}`,
+            answer: target,
+            numbers: numbers,
+            operations: config.operations,
+            operation: 'equation' // Add this to maintain consistency
+        };
+    }
+
+    static validateEquation(equation, target, numbers) {
+        try {
+            // Create a safe evaluation environment
+            const result = Function(`return ${equation}`)();
+            
+            // Check if result matches target
+            if (Math.abs(result - target) > 0.1) return false;
+
+            // Check if only provided numbers are used
+            const usedNumbers = equation.match(/\d+/g).map(Number);
+            const sortedNumbers = [...numbers].sort();
+            const sortedUsed = [...usedNumbers].sort();
+
+            return JSON.stringify(sortedNumbers) === JSON.stringify(sortedUsed);
+        } catch (e) {
+            return false;
+        }
+    }
 }
 
 // Game Class
@@ -500,23 +635,10 @@ class Game {
     static startGame(mode) {
         if (!CONFIG.modes[mode]) return;
 
-        // Set start time when game begins
-        gameState.startTime = Date.now();
-        
-        // Initialize statistics if they don't exist
-        if (!gameState.statistics) {
-            gameState.statistics = {
-                totalProblems: 0,
-                correctAnswers: 0,
-                totalPlayTime: 0,
-                longestStreak: 0,
-                recentActivities: []
-            };
-        }
-        
+        // Set initial game state
         gameState.isPlaying = true;
         gameState.currentMode = mode;
-        gameState.hintsLeft = 5;
+        gameState.hintsLeft = CONFIG.maxHints;
         gameState.score = 0;
         gameState.level = 1;
         gameState.combo = 0;
@@ -524,17 +646,25 @@ class Game {
         gameState.correctAnswers = 0;
         gameState.totalAttempts = 0;
         gameState.timeLeft = CONFIG.modes[mode].timeLimit;
+        gameState.startTime = Date.now();
+
+        // Update UI with initial values
+        document.getElementById('currentLevel').textContent = '1';
+        document.getElementById('currentScore').textContent = '0';
+        document.getElementById('hintCount').textContent = CONFIG.maxHints;
+        document.getElementById('gameTimer').textContent = UTILS.formatTime(gameState.timeLeft);
 
         const gameContainer = document.querySelector('.game-container');
         const modeSelection = document.querySelector('.mode-selection');
         
         // Show game container
-        gameContainer.classList.add('active');
-        // Hide mode selection but keep it in DOM
-        modeSelection.style.display = 'none';
-        
-        // Update hint count display
-        this.updateHintCount();
+        if (gameContainer) {
+            gameContainer.classList.add('active');
+        }
+        // Hide mode selection
+        if (modeSelection) {
+            modeSelection.style.display = 'none';
+        }
 
         this.generateNewProblem();
         this.startTimer();
@@ -574,33 +704,48 @@ class Game {
     }
 
     static checkAnswer() {
-        try {
-            if (!gameState.isPlaying || gameState.isPaused) return;
+        if (!gameState.isPlaying || gameState.isPaused) return;
 
-            const answerInput = document.getElementById('answerInput');
-            if (!answerInput) return;
+        const answerInput = document.getElementById('answerInput');
+        if (!answerInput) return;
 
-            const userAnswer = parseFloat(answerInput.value);
-            if (isNaN(userAnswer)) {
-                this.showToast('Please enter a valid number', 'error');
-                return;
-            }
-
-            gameState.totalAttempts++;
-            const isCorrect = Math.abs(userAnswer - gameState.currentProblem.answer) < 0.1;
-
-            if (isCorrect) {
-                this.handleCorrectAnswer();
-            } else {
-                this.handleWrongAnswer();
-            }
-
-            this.updateStatistics(gameState.currentProblem, userAnswer, isCorrect);
-            AchievementSystem.check(gameState);
-            this.updateUI();
-        } catch (error) {
-            console.log('Error checking answer:', error);
+        const userAnswer = parseFloat(answerInput.value);
+        if (isNaN(userAnswer)) {
+            this.showToast('Please enter a valid number', 'error');
+            return;
         }
+
+        const isCorrect = Math.abs(userAnswer - gameState.currentProblem.answer) < 0.1;
+
+        // Update statistics
+        if (!gameState.statistics.recentActivities) {
+            gameState.statistics.recentActivities = [];
+        }
+
+        // Add new activity
+        gameState.statistics.recentActivities.push({
+            problem: { ...gameState.currentProblem }, // Clone to prevent reference issues
+            answer: userAnswer,
+            correct: isCorrect,
+            timestamp: Date.now()
+        });
+
+        // Keep only last 50 activities
+        if (gameState.statistics.recentActivities.length > 50) {
+            gameState.statistics.recentActivities.shift();
+        }
+
+        if (isCorrect) {
+            this.handleCorrectAnswer();
+        } else {
+            this.handleWrongAnswer();
+        }
+
+        // Update UI
+        this.updateUI();
+        this.updateLevel();
+        this.updateActivityFeed();
+        this.saveGameData();
     }
 
     static handleCorrectAnswer() {
@@ -613,7 +758,7 @@ class Game {
         const comboMultiplier = 1 + (Math.min(gameState.combo, CONFIG.maxCombo) * CONFIG.comboMultiplier);
         const points = Math.round(basePoints * comboMultiplier);
 
-        gameState.score += points;
+        this.updateScore(points);
         this.showComboIndicator(points);
         this.checkLevelUp();
         this.generateNewProblem();
@@ -1140,38 +1285,57 @@ class Game {
             const achievement = AchievementSystem.achievements.find(a => a.id === achievementId);
             if (achievement && gameState.achievements.has(achievement.id)) {
                 card.classList.add('unlocked');
-            } else { card.classList.add('unlocked');
             }
         });
     }
 
     static updateActivityFeed(feedElement) {
-        // Clear existing items
-        feedElement.innerHTML = '';
+        if (!feedElement) return;
 
-        // Get last 10 activities
-        const recentActivities = gameState.statistics.recentActivities || [];
-        const lastTenActivities = recentActivities.slice(-10).reverse();
+        try {
+            feedElement.innerHTML = '';
+            const activities = gameState.statistics.recentActivities || [];
+            const recentActivities = activities.slice(-10).reverse();
 
-        lastTenActivities.forEach(activity => {
-            const activityItem = document.createElement('div');
-            activityItem.className = `activity-item activity-${activity.correct ? 'correct' : 'wrong'}`;
+            if (recentActivities.length === 0) {
+                feedElement.innerHTML = '<div class="empty-state">No recent activities</div>';
+                return;
+            }
 
-            activityItem.innerHTML = `
-                <div class="activity-icon">
-                    <i class="fas fa-${activity.correct ? 'check' : 'times'}"></i>
-                </div>
-                <div class="activity-info">
-                    <div class="activity-title">${activity.problem.problem} = ${activity.answer}</div>
-                    <div class="activity-time">
-                        <i class="ri-time-line"></i>
-                        ${this.formatTimeAgo(activity.timestamp)}
+            recentActivities.forEach(activity => {
+                if (!activity.problem || !activity.answer) return; // Skip invalid activities
+
+                const activityItem = document.createElement('div');
+                activityItem.className = `activity-item ${activity.correct ? 'activity-correct' : 'activity-wrong'}`;
+
+                // Format the problem display
+                const problemText = activity.problem.problem
+                    .replace(/\*/g, '×')
+                    .replace(/\//g, '÷')
+                    .replace(/\^/g, '<sup>2</sup>');
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="fas fa-${activity.correct ? 'check' : 'times'}"></i>
                     </div>
-                </div>
-            `;
+                    <div class="activity-info">
+                        <div class="activity-title">
+                            ${problemText} = ${activity.answer}
+                            ${!activity.correct ? ` (Correct: ${activity.problem.answer})` : ''}
+                        </div>
+                        <div class="activity-time">
+                            <i class="ri-time-line"></i>
+                            ${this.formatTimeAgo(activity.timestamp)}
+                        </div>
+                    </div>
+                `;
 
-            feedElement.appendChild(activityItem);
-        });
+                feedElement.appendChild(activityItem);
+            });
+        } catch (error) {
+            console.error('Error updating activity feed:', error);
+            feedElement.innerHTML = '<div class="activity-error">Error loading activities</div>';
+        }
     }
 
     static updateWeeklyGoals(goalsElement) {
@@ -1209,23 +1373,63 @@ class Game {
     static formatTimeAgo(timestamp) {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         
-        const intervals = {
-            year: 31536000,
-            month: 2592000,
-            week: 604800,
-            day: 86400,
-            hour: 3600,
-            minute: 60
-        };
+        if (seconds < 60) return 'just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        return `${Math.floor(seconds / 86400)}d ago`;
+    }
 
-        for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-            const interval = Math.floor(seconds / secondsInUnit);
-            if (interval >= 1) {
-                return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
-            }
+    static updateTopicMastery(problem, isCorrect) {
+        const operation = problem.operation;
+        if (!gameState.statistics.topicsPerformance) {
+            gameState.statistics.topicsPerformance = {};
         }
-        
-        return 'Just now';
+
+        if (!gameState.statistics.topicsPerformance[operation]) {
+            gameState.statistics.topicsPerformance[operation] = {
+                attempts: 0,
+                correct: 0,
+                lastUpdated: Date.now()
+            };
+        }
+
+        const topicStats = gameState.statistics.topicsPerformance[operation];
+        topicStats.attempts++;
+        if (isCorrect) {
+            topicStats.correct++;
+        }
+        topicStats.lastUpdated = Date.now();
+
+        // Update mastery percentage
+        topicStats.mastery = (topicStats.correct / topicStats.attempts) * 100;
+
+        // Update charts if they exist
+        if (document.getElementById('topicsChart')) {
+            this.updateTopicsChart();
+        }
+    }
+
+    static updateLevel() {
+        const levelElement = document.getElementById('currentLevel');
+        if (levelElement) {
+            levelElement.textContent = gameState.level;
+            
+            // Add animation for level up
+            anime({
+                targets: levelElement,
+                scale: [1, 1.2, 1],
+                duration: 800,
+                easing: 'easeOutElastic(1, .5)'
+            });
+        }
+    }
+
+    static updateScore(points) {
+        gameState.score += points;
+        const scoreElement = document.getElementById('currentScore');
+        if (scoreElement) {
+            scoreElement.textContent = gameState.score.toLocaleString();
+        }
     }
 }
 
@@ -1264,6 +1468,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize theme manager
     ThemeManager.init();
+
+    // Achievement cards click handler
+    const achievementCards = document.querySelectorAll('.achievement-card');
+    let activeCard = null;
+
+    achievementCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Only handle clicks on mobile
+            if (window.innerWidth <= 768) {
+                // Remove active class from previous card
+                if (activeCard && activeCard !== card) {
+                    activeCard.classList.remove('active');
+                }
+                
+                // Toggle active state on clicked card
+                card.classList.toggle('active');
+                activeCard = card.classList.contains('active') ? card : null;
+                
+                // Prevent click event from bubbling up
+                e.stopPropagation();
+            }
+        });
+    });
+
+    // Close active card when clicking outside
+    document.addEventListener('click', () => {
+        if (activeCard) {
+            activeCard.classList.remove('active');
+            activeCard = null;
+        }
+    });
 });
 
 // Global Function Declarations (for HTML onclick handlers)
@@ -1523,3 +1758,62 @@ function resetPerformanceTracker() {
     performanceTracker.startTime = Date.now();
     performanceTracker.lastAnswerTime = null;
 }
+
+// Add statistics persistence
+const StatisticsManager = {
+    saveStats() {
+        localStorage.setItem('mathMasterStats', JSON.stringify(gameState.statistics));
+    },
+
+    loadStats() {
+        const savedStats = localStorage.getItem('mathMasterStats');
+        if (savedStats) {
+            gameState.statistics = JSON.parse(savedStats);
+        }
+    }
+};
+
+// Add CSS for achievement notification
+const style = document.createElement('style');
+style.textContent = `
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .achievement-notification {
+        display: flex;
+        align-items: center;
+        background: rgba(76, 175, 80, 0.9);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        max-width: 300px;
+        pointer-events: none;
+    }
+
+    .achievement-icon {
+        margin-right: 15px;
+        font-size: 24px;
+        color: #FFD700;
+    }
+
+    .achievement-details h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .achievement-details p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+`;
+document.head.appendChild(style);
